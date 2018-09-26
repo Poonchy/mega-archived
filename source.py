@@ -9,7 +9,7 @@ import os
 import re
 import datetime
 
-TOKEN = os.environ['TOKEN']
+TOKEN = app_id = os.environ['TOKEN']
 conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
 
 client = discord.Client()
@@ -24,18 +24,16 @@ async def on_message(message):
         await client.send_message(message.author, msg)
     if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
         msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega create hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
-        await client.send_message(message.author, msg)
+        await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA CREATE HERO'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
-        
         if not cursor.rowcount:
             await client.send_message(message.channel, "You can create a character! Simply respond with (Mega create my knight/mage named XXX).")
         else:
             await client.send_message(message.channel, "You already have a character! Type in, 'Mega Hero' to view them!")
-        conn.close()
     if usermessage.startswith('MEGA CREATE MY'):
         #Checks if user already has a character
         usertoken = '{0.author.mention}'.format(message)
@@ -55,12 +53,10 @@ async def on_message(message):
                 if 'knight' in message.content and len(message.content.split()) >= 6:
                     cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroClass, EXP, level, timeTrained) VALUES ('" + usertoken + "','" + name + "','knight', '0', '1', '" + str(currentTime) + "');")
                     conn.commit()
-                    conn.close()
                     await client.send_message(message.channel, "You chose a knight named " + name + "! To view your character type in, 'Mega Hero'.")
                 elif 'mage' in message.content and len(message.content.split()) >= 6:
                     cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroClass, EXP, level, timeTrained) VALUES ('" + usertoken + "','" + name + "','mage', '0', '1', '" + str(currentTime) + "');")
                     conn.commit()
-                    conn.close()
                     await client.send_message(message.channel, "You chose a mage named " + name + "! To view your character type in, 'Mega Hero'.")
         else:
             await client.send_message(message.channel, "You already have a character! Say, 'Mega Hero' to view them!")
@@ -68,6 +64,7 @@ async def on_message(message):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
