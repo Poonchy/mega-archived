@@ -1,0 +1,255 @@
+# Work with Python 3.6
+import discord
+import time
+import calendar
+import pymysql
+from PIL import Image, ImageDraw, ImageSequence, ImageFont
+import io
+import os
+import re
+import datetime
+
+TOKEN = os.environ['TOKEN']
+conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
+
+client = discord.Client()
+
+@client.event
+async def on_message(message):
+    usermessage = message.content.upper() 
+    if message.author == client.user:
+        return
+    if usermessage.startswith('MEGA HELP'):
+        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega create hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
+        await client.send_message(message.author, msg)
+    if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
+        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega create hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
+        await client.send_message(message.author, msg)
+    if usermessage.startswith('MEGA CREATE HERO'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        
+        if not cursor.rowcount:
+            await client.send_message(message.channel, "You can create a character! Simply respond with (Mega create my knight/mage named XXX).")
+        else:
+            await client.send_message(message.channel, "You already have a character! Type in, 'Mega Hero' to view them!")
+        conn.close()
+    if usermessage.startswith('MEGA CREATE MY'):
+        #Checks if user already has a character
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        currentTime = calendar.timegm(time.gmtime())
+        if not cursor.rowcount:
+            if 'NAMED' in usermessage:
+                regexp = re.compile("named (.*)$")
+                name = regexp.search(message.content).group(1)
+                name = " ".join(name.split()).title()
+                for k in name.split("\n"):
+                    name = re.sub(r"[^a-zA-Z0-9]+", ' ', k)
+                usertoken = '{0.author.mention}'.format(message)
+                cursor = conn.cursor()
+                if 'knight' in message.content and len(message.content.split()) >= 6:
+                    cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroClass, EXP, level, timeTrained) VALUES ('" + usertoken + "','" + name + "','knight', '0', '1', '" + str(currentTime) + "');")
+                    conn.commit()
+                    conn.close()
+                    await client.send_message(message.channel, "You chose a knight named " + name + "! To view your character type in, 'Mega Hero'.")
+                elif 'mage' in message.content and len(message.content.split()) >= 6:
+                    cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroClass, EXP, level, timeTrained) VALUES ('" + usertoken + "','" + name + "','mage', '0', '1', '" + str(currentTime) + "');")
+                    conn.commit()
+                    conn.close()
+                    await client.send_message(message.channel, "You chose a mage named " + name + "! To view your character type in, 'Mega Hero'.")
+        else:
+            await client.send_message(message.channel, "You already have a character! Say, 'Mega Hero' to view them!")
+    if usermessage.startswith('MEGA HERO'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            heroName = userdata[1]
+            heroClass = userdata[2]
+            heroEXP = userdata[3]
+            heroLevel = userdata[4]
+            heroTrained = userdata[5]
+            if heroClass == 'knight':
+                im = Image.open('knight.gif')
+                frames = []
+                for frame in ImageSequence.Iterator(im):
+                    font = ImageFont.truetype("arial.ttf", 20)
+                    d = ImageDraw.Draw(frame)
+                    d.text((10,10), "Name: " + heroName, font=font)
+                    d.text((10,30), "Level: " + heroLevel, font=font)
+                    d.text((10,50), "EXP: " + heroEXP, font=font)
+                    del d
+                    b = io.BytesIO()
+                    frame.save(b, format="GIF")
+                    frame = Image.open(b)
+                    frames.append(frame)
+                frames[0].save('out.gif', save_all=True, append_images=frames[1:])
+                await client.send_file(message.channel, 'out.gif')
+                os.remove("out.gif")
+            if heroClass == 'mage':
+                im = Image.open('mage.gif')
+                frames = []
+                for frame in ImageSequence.Iterator(im):
+                    font = ImageFont.truetype("arial.ttf", 20)
+                    d = ImageDraw.Draw(frame)
+                    d.text((10,10), "Name: " + heroName, font=font)
+                    d.text((10,30), "Level: " + heroLevel, font=font)
+                    d.text((10,50), "EXP: " + heroEXP, font=font)
+                    del d
+                    b = io.BytesIO()
+                    frame.save(b, format="GIF")
+                    frame = Image.open(b)
+                    frames.append(frame)
+                frames[0].save('out.gif', save_all=True, append_images=frames[1:])
+                await client.send_file(message.channel, 'out.gif')
+                os.remove("out.gif")
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA TRAIN'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            heroName = userdata[1]
+            heroClass = userdata[2]
+            heroEXP = int(userdata[3])
+            heroLevel = int(userdata[4])
+            heroTrained = int(userdata[5])
+            currentTime = calendar.timegm(time.gmtime())
+            timeleft = int(currentTime) - int(heroTrained)
+            if timeleft > 43200:
+                heroEXP += 1
+                cursor.execute("UPDATE AzerothHeroes SET EXP = '" + str(heroEXP) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                conn.commit()
+                cursor.execute("UPDATE AzerothHeroes SET timeTrained = '" + str(currentTime) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                conn.commit()
+                await client.send_message(message.channel, "Updated EXP for " + heroName + ".")
+                if heroEXP >= 2 and heroLevel <2:
+                    heroLevel += 1
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    conn.commit()
+                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
+                elif heroEXP >= 4 and heroLevel <3:
+                    heroLevel += 1
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    conn.commit()
+                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
+                elif heroEXP >= 8 and heroLevel <4:
+                    heroLevel += 1
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    conn.commit()
+                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
+                elif heroEXP >= 16 and heroLevel <5:
+                    heroLevel += 1
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    conn.commit()
+                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
+                if heroClass == 'knight':
+                    im = Image.open('knight.gif')
+                    frames = []
+                    for frame in ImageSequence.Iterator(im):
+                        font = ImageFont.truetype("arial.ttf", 20)
+                        d = ImageDraw.Draw(frame)
+                        d.text((10,10), "Name: " + heroName, font=font)
+                        d.text((10,30), "Level: " + str(heroLevel), font=font)
+                        d.text((10,50), "EXP: " + str(heroEXP), font=font)
+                        del d
+                        b = io.BytesIO()
+                        frame.save(b, format="GIF")
+                        frame = Image.open(b)
+                        frames.append(frame)
+                    frames[0].save('out.gif', save_all=True, append_images=frames[1:])
+                    await client.send_file(message.channel, 'out.gif')
+                    os.remove("out.gif")
+                if heroClass == 'mage':
+                    im = Image.open('mage.gif')
+                    frames = []
+                    for frame in ImageSequence.Iterator(im):
+                        font = ImageFont.truetype("arial.ttf", 20)
+                        d = ImageDraw.Draw(frame)
+                        d.text((10,10), "Name: " + heroName, font=font)
+                        d.text((10,30), "Level: " + str(heroLevel), font=font)
+                        d.text((10,50), "EXP: " + str(heroEXP), font=font)
+                        del d
+                        b = io.BytesIO()
+                        frame.save(b, format="GIF")
+                        frame = Image.open(b)
+                        frames.append(frame)
+                    frames[0].save('out.gif', save_all=True, append_images=frames[1:])
+                    await client.send_file(message.channel, 'out.gif')
+                    os.remove("out.gif")
+            else:
+                timeToCalc = 43200 - (int(currentTime) - int(heroTrained))
+                await client.send_message(message.channel, "You have to wait " + str(datetime.timedelta(seconds=timeToCalc)) + " before you can train.")
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA DELETE'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            msg = 'Are you sure you want to delete your hero? This cannot be undone.\nType in "I wish to delete XXX" replacing XXX with your hero\'s name.'.format(message)
+            await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('I WISH TO DELETE'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            heroName = userdata[1]
+
+            regexp = re.compile("delete (.*)$")
+            name = regexp.search(message.content).group(1)
+            name = " ".join(name.split()).title()
+            for k in name.split("\n"):
+                name = re.sub(r"[^a-zA-Z0-9]+", ' ', k)
+            if name == heroName:
+                cursor.execute("DELETE FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+                conn.commit()
+                msg = 'Your hero has been destroyed. Type "Mega Create Hero" to start your journey.'.format(message)
+                await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA SOURCE'):
+        msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
+        await client.send_message(message.channel, msg)
+        await client.send_file(message.channel, 'source.py')
+
+@client.event
+async def on_ready():
+    print('Logged in as')
+    print(client.user.name)
+    print(client.user.id)
+    print('------')
+
+client.run(TOKEN)
