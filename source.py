@@ -63,7 +63,7 @@ async def on_message(message):
     if usermessage.startswith('MEGA HERO'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
@@ -117,7 +117,7 @@ async def on_message(message):
     if usermessage.startswith('MEGA TRAIN'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
@@ -134,29 +134,29 @@ async def on_message(message):
             timeleft = int(currentTime) - int(heroTrained)
             if timeleft > 43200:
                 heroEXP += 1
-                cursor.execute("UPDATE AzerothHeroes SET EXP = '" + str(heroEXP) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                cursor.execute("UPDATE AzerothHeroes SET EXP = '" + str(heroEXP) + "' WHERE userID = '%" + usertoken + "%';")
                 conn.commit()
-                cursor.execute("UPDATE AzerothHeroes SET timeTrained = '" + str(currentTime) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                cursor.execute("UPDATE AzerothHeroes SET timeTrained = '" + str(currentTime) + "' WHERE userID = '%" + usertoken + "%';")
                 conn.commit()
                 await client.send_message(message.channel, "Updated EXP for " + heroName + ".")
                 if heroEXP >= 2 and heroLevel <2:
                     heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
                     conn.commit()
                     await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
                 elif heroEXP >= 4 and heroLevel <3:
                     heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
                     conn.commit()
                     await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
                 elif heroEXP >= 8 and heroLevel <4:
                     heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
                     conn.commit()
                     await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
                 elif heroEXP >= 16 and heroLevel <5:
                     heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID LIKE '%" + usertoken + "%';")
+                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
                     conn.commit()
                     await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
                 if heroClass == 'knight':
@@ -202,7 +202,7 @@ async def on_message(message):
     if usermessage.startswith('MEGA DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
@@ -214,7 +214,7 @@ async def on_message(message):
     if usermessage.startswith('I WISH TO DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
@@ -230,7 +230,7 @@ async def on_message(message):
             for k in name.split("\n"):
                 name = re.sub(r"[^a-zA-Z0-9]+", ' ', k)
             if name == heroName:
-                cursor.execute("DELETE FROM AzerothHeroes WHERE userID LIKE '%" + usertoken + "%';")
+                cursor.execute("DELETE FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
                 conn.commit()
                 msg = 'Your hero has been destroyed. Type "Mega Create Hero" to start your journey.'.format(message)
                 await client.send_message(message.channel, msg)
