@@ -63,7 +63,6 @@ async def on_message(message):
     if usermessage.startswith('MEGA HERO'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
