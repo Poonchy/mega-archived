@@ -10,20 +10,20 @@ import re
 import datetime
 
 TOKEN = app_id = os.environ['TOKEN']
-conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
 
 client = discord.Client()
 
 @client.event
 async def on_message(message):
+    conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
     usermessage = message.content.upper() 
     if message.author == client.user:
         return
     if usermessage.startswith('MEGA HELP'):
-        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega create hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
+        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
         await client.send_message(message.author, msg)
     if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
-        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega create hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
+        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
         await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA CREATE HERO'):
         usertoken = '{0.author.mention}'.format(message)
@@ -241,7 +241,7 @@ async def on_message(message):
         msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
         await client.send_message(message.channel, msg)
         await client.send_file(message.channel, 'source.py')
-
+    conn.close()
 @client.event
 async def on_ready():
     print('Logged in as')
