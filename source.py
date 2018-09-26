@@ -81,7 +81,7 @@ async def on_message(message):
                 im = Image.open('knight.gif')
                 frames = []
                 for frame in ImageSequence.Iterator(im):
-                    font = ImageFont.truetype("arial.ttf", 20)
+                    font = ImageFont.truetype("helvetica.ttf", 20)
                     d = ImageDraw.Draw(frame)
                     d.text((10,10), "Name: " + heroName, font=font)
                     d.text((10,30), "Level: " + heroLevel, font=font)
@@ -98,7 +98,7 @@ async def on_message(message):
                 im = Image.open('mage.gif')
                 frames = []
                 for frame in ImageSequence.Iterator(im):
-                    font = ImageFont.truetype("arial.ttf", 20)
+                    font = ImageFont.truetype("helvetica.ttf", 20)
                     d = ImageDraw.Draw(frame)
                     d.text((10,10), "Name: " + heroName, font=font)
                     d.text((10,30), "Level: " + heroLevel, font=font)
@@ -163,7 +163,7 @@ async def on_message(message):
                     im = Image.open('knight.gif')
                     frames = []
                     for frame in ImageSequence.Iterator(im):
-                        font = ImageFont.truetype("arial.ttf", 20)
+                        font = ImageFont.truetype("helvetica.ttf", 20)
                         d = ImageDraw.Draw(frame)
                         d.text((10,10), "Name: " + heroName, font=font)
                         d.text((10,30), "Level: " + str(heroLevel), font=font)
@@ -180,7 +180,7 @@ async def on_message(message):
                     im = Image.open('mage.gif')
                     frames = []
                     for frame in ImageSequence.Iterator(im):
-                        font = ImageFont.truetype("arial.ttf", 20)
+                        font = ImageFont.truetype("helvetica.ttf", 20)
                         d = ImageDraw.Draw(frame)
                         d.text((10,10), "Name: " + heroName, font=font)
                         d.text((10,30), "Level: " + str(heroLevel), font=font)
