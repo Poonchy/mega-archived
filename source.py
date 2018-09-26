@@ -201,9 +201,10 @@ async def on_message(message):
     if usermessage.startswith('MEGA DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
+
         if cursor.rowcount:
             msg = 'Are you sure you want to delete your hero? This cannot be undone.\nType in "I wish to delete XXX" replacing XXX with your hero\'s name.'.format(message)
             await client.send_message(message.channel, msg)
@@ -213,7 +214,7 @@ async def on_message(message):
     if usermessage.startswith('I WISH TO DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
@@ -229,7 +230,7 @@ async def on_message(message):
             for k in name.split("\n"):
                 name = re.sub(r"[^a-zA-Z0-9]+", ' ', k)
             if name == heroName:
-                cursor.execute("DELETE FROM AzerothHeroes WHERE userID = '%" + usertoken + "%';")
+                cursor.execute("DELETE FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
                 conn.commit()
                 msg = 'Your hero has been destroyed. Type "Mega Create Hero" to start your journey.'.format(message)
                 await client.send_message(message.channel, msg)
