@@ -8,6 +8,8 @@ import io
 import os
 import re
 import datetime
+import random
+import math
 
 TOKEN = app_id = os.environ['TOKEN']
 
@@ -40,6 +42,7 @@ async def on_message(message):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
+        timeNow = calendar.timegm(time.gmtime())
         if not cursor.rowcount:
             if 'NAMED' in usermessage and ('warrior' in message.content or 'mage' in message.content) and ('orc' in message.content or 'human' in message.content) and len(message.content.split()) >= 7:
                 regexp = re.compile("named (.*)$")
@@ -47,67 +50,70 @@ async def on_message(message):
                 name = " ".join(name.split()).title()
                 for k in name.split("\n"):
                     name = re.sub(r"[^a-zA-Z0-9]+", ' ', k)
-                usertoken = '{0.author.mention}'.format(message)
-                cursor = conn.cursor()
-                heroClass = ""
-                heroRace = ""
-                heroChest = ""
-                heroGloves = ""
-                heroBelt = ""
-                heroLegs = ""
-                heroFeet = ""
-                heroMH = ""
-                heroHealth = ""
-                heroStam = ""
-                heroArmor = ""
-                heroInt = ""
-                heroStr = ""
-                heroAgi = ""
-                heroCrit = ""
-                if 'warrior' in message.content and len(message.content.split()) >= 7:
-                    heroClass = "warrior"
-                    heroChest = "31"
-                    heroGloves = "41"
-                    heroBelt = "51"
-                    heroLegs = "61"
-                    heroFeet = "71"
-                    heroMH = "81"
-                    heroHealth = "150"
-                    heroStam = "10"
-                    heroArmor = "15"
-                    heroInt = "0"
-                    heroStr = "10"
-                    heroAgi = "0"
-                    heroCrit = "10"
-                if 'mage' in message.content and len(message.content.split()) >= 7:
-                    heroClass = "mage"
-                    heroChest = "32"
-                    heroGloves = "42"
-                    heroBelt = "52"
-                    heroLegs = "62"
-                    heroFeet = "72"
-                    heroMH = "82"
-                    heroHealth = "100"
-                    heroStam = "5"
-                    heroArmor = "5"
-                    heroInt = "15"
-                    heroStr = "0"
-                    heroAgi = "0"
-                    heroCrit = "20"
-                if 'orc' in message.content and len(message.content.split()) >= 7:
-                    heroRace = "orc"
-                    if 'mage' in message.content:
-                        heroInt = str(int(heroInt) + 1)
-                    if 'warrior' in message.content:
-                        heroStr = str(int(heroStr) + 1)
-                if 'human' in message.content and len(message.content.split()) >= 7:
-                    heroRace = "human"
-                    heroHealth = str(int(heroHealth) + 10)
-                    heroStam = str(int(heroStam) + 1)
-                heroInventory = heroChest + ", " + heroGloves + ", " + heroBelt + ", " + heroLegs + ", " + heroFeet + ", " + heroMH
-                cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroRace, heroClass, heroHelm, heroShoulders, heroChest, heroGloves, heroBelt, heroLegs, heroFeet, heroMH, heroOH, heroInventory, heroCurrentHealth, heroMaximumHealth, heroStamina, heroArmor, heroInt, heroStr, heroAgi, heroCrit, EXP, level, timeTrained, healthRegenTimer) VALUES ('" + usertoken + "','" + name +"','" + heroRace + "','" + heroClass + "','0','0','" + heroChest + "','" + heroGloves +"','" + heroBelt + "','" + heroLegs + "','" + heroFeet + "','" + heroMH + "','0','" + heroInventory + "','" + heroHealth + "','" + heroHealth + "','" + heroStam + "','" + heroArmor + "','" + heroInt + "','" + heroStr + "','" + heroAgi + "','" + heroCrit + "','0','1','0','0');")
-                conn.commit()
-                await client.send_message(message.channel, "You chose a " + heroRace + " " + heroClass + " named " + name + "! To view your character type in, 'Mega Hero'.")
+                if len(name) < 12:
+                    heroClass = ""
+                    heroRace = ""
+                    heroChest = ""
+                    heroGloves = ""
+                    heroBelt = ""
+                    heroLegs = ""
+                    heroFeet = ""
+                    heroMH = ""
+                    heroHealth = ""
+                    heroStam = ""
+                    heroArmor = ""
+                    heroInt = ""
+                    heroStr = ""
+                    heroAgi = ""
+                    heroCrit = ""
+                    if 'warrior' in message.content and len(message.content.split()) >= 7:
+                        heroClass = "warrior"
+                        heroChest = "31"
+                        heroGloves = "41"
+                        heroBelt = "51"
+                        heroLegs = "61"
+                        heroFeet = "71"
+                        heroMH = "81"
+                        heroHealth = "150"
+                        heroStam = "10"
+                        heroArmor = "15"
+                        heroInt = "0"
+                        heroStr = "10"
+                        heroAgi = "0"
+                        heroCrit = "10"
+                    if 'mage' in message.content and len(message.content.split()) >= 7:
+                        heroClass = "mage"
+                        heroChest = "32"
+                        heroGloves = "42"
+                        heroBelt = "52"
+                        heroLegs = "62"
+                        heroFeet = "72"
+                        heroMH = "82"
+                        heroHealth = "100"
+                        heroStam = "5"
+                        heroArmor = "5"
+                        heroInt = "15"
+                        heroStr = "0"
+                        heroAgi = "0"
+                        heroCrit = "20"
+                    if 'orc' in message.content and len(message.content.split()) >= 7:
+                        heroRace = "orc"
+                        if 'mage' in message.content:
+                            heroInt = str(int(heroInt) + 1)
+                        if 'warrior' in message.content:
+                            heroStr = str(int(heroStr) + 1)
+                    if 'human' in message.content and len(message.content.split()) >= 7:
+                        heroRace = "human"
+                        heroHealth = str(int(heroHealth) + 10)
+                        heroStam = str(int(heroStam) + 1)
+                    heroInventory = heroChest + " " + heroGloves + " " + heroBelt + " " + heroLegs + " " + heroFeet + " " + heroMH + " "
+                    cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroRace, heroClass, heroHelm, heroShoulders, heroChest, heroGloves, heroBelt, heroLegs, heroFeet, heroMH, heroOH, heroInventory, heroCurrentHealth, heroMaximumHealth, heroStamina, heroArmor, heroInt, heroStr, heroAgi, heroCrit, EXP, level, heroGold, timeUpdated, carryOverSeconds) VALUES ('" + usertoken + "','" + name +"','" + heroRace + "','" + heroClass + "','0','0','" + heroChest + "','" + heroGloves +"','" + heroBelt + "','" + heroLegs + "','" + heroFeet + "','" + heroMH + "','0','" + heroInventory + "','" + heroHealth + "','" + heroHealth + "','" + heroStam + "','" + heroArmor + "','" + heroInt + "','" + heroStr + "','" + heroAgi + "','" + heroCrit + "','0','1','0','" + str(timeNow) + "','0');")
+                    conn.commit()
+                    await client.send_message(message.channel, "You chose a " + heroRace + " " + heroClass + " named " + name + "! To view your character type in, 'Mega Hero'.")
+                else:
+                    await client.send_message(message.channel, "Your name was too long! A name cannot be longer than 12 characters.")
+            else:
+                await client.send_message(message.channel, "Your response was formatted incorrectly. Make sure to include your race, class and name! An example:\nMega create my orc warrior name zugzug.")
         else:
             await client.send_message(message.channel, "You already have a character! Say, 'Mega Hero' to view them!")
     if usermessage.startswith('MEGA HERO'):
@@ -124,6 +130,7 @@ async def on_message(message):
             heroName = userdata[1]
             heroRace = userdata[2]
             heroClass = userdata[3]
+            heroOffSet = 0
             if heroRace == "orc":
                 heroHelm = "orc" + str(userdata[4])
                 heroShoulder = "orc" + str(userdata[5])
@@ -132,6 +139,7 @@ async def on_message(message):
                 heroBelt = "orc" + str(userdata[8])
                 heroLegs = "orc" + str(userdata[9])
                 heroFeet = "orc" + str(userdata[10])
+                heroOffSet = (110,180)
             if heroRace == "human":
                 heroHelm = "human" + str(userdata[4])
                 heroShoulder = "human" + str(userdata[5])
@@ -140,6 +148,7 @@ async def on_message(message):
                 heroBelt = "human" + str(userdata[8])
                 heroLegs = "human" + str(userdata[9])
                 heroFeet = "human" + str(userdata[10])
+                heroOffSet = (110,180)
             heroMH = userdata[11]
             heroOH = userdata[12]
             heroCurrentHealth = userdata[14]
@@ -152,6 +161,24 @@ async def on_message(message):
             heroCrit = userdata[21]
             heroEXP = userdata[22]
             heroLevel = userdata[23]
+            heroGold = userdata[24]
+            heroUpdateTimer = userdata[25]
+            carryOverTime = userdata[26]
+            if int(heroCurrentHealth) < int(heroMaximumHealth):
+                timeNow = calendar.timegm(time.gmtime())
+                timeSinceLast = timeNow - int(heroUpdateTimer)
+                healthToRegen = math.floor(timeSinceLast/180)
+                remainingTime = int(timeSinceLast) % 180
+                carryOverTime = int(carryOverTime) + int(remainingTime)
+                if int(carryOverTime) >= 180:
+                    carryOverTime = int(carryOverTime) - 180
+                    healthToRegen += 1
+                heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
+                if int(heroCurrentHealth) >= int(heroMaximumHealth):
+                    heroCurrentHealth = int(heroMaximumHealth)
+                    carryOverTime = 0
+                cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
+                conn.commit()
             background = Image.open('Items/white.jpg')
             hero = Image.open("Items/" + str(heroRace) + '.png')
             helmet = Image.open("Items/" + str(heroHelm) + '.png')
@@ -165,28 +192,31 @@ async def on_message(message):
             offhand = Image.open("Items/" + str(heroOH) + '.png')
             healthbar = Image.open("Items/health.png")
             healthbarFrame = Image.open("Items/healthBarFrame.png")
+            goldCoin = Image.open("Items/goldcoin.png")
             canvas = Image.new('RGBA', (500,500), (0, 0, 0, 0))
             canvas = Image.new('RGBA', (500,500), (0, 0, 0, 0))
             canvas.paste(background, (0,0))
-            canvas.paste(hero, (160, 180), mask=hero)
-            canvas.paste(helmet, (160, 180), mask=helmet)
-            canvas.paste(shoulders, (160, 180), mask=shoulders)
-            canvas.paste(chest, (160, 180), mask=chest)
-            canvas.paste(gloves, (160, 180), mask=gloves)
-            canvas.paste(belt, (160, 180), mask=belt)
-            canvas.paste(legs, (160, 180), mask=legs)
-            canvas.paste(feet, (160, 180), mask=feet)
-            canvas.paste(mainhand, (160, 180), mask=mainhand)
-            canvas.paste(offhand, (160, 180), mask=offhand)
+            canvas.paste(hero, heroOffSet, mask=hero)
+            canvas.paste(feet, heroOffSet, mask=feet)
+            canvas.paste(legs, heroOffSet, mask=legs)
+            canvas.paste(gloves, heroOffSet, mask=gloves)
+            canvas.paste(helmet, heroOffSet, mask=helmet)
+            canvas.paste(shoulders, heroOffSet, mask=shoulders)
+            canvas.paste(chest, heroOffSet, mask=chest)
+            canvas.paste(belt, heroOffSet, mask=belt)
+            canvas.paste(mainhand, heroOffSet, mask=mainhand)
+            canvas.paste(offhand, heroOffSet, mask=offhand)
             font = ImageFont.truetype("helvetica.ttf", 20)
             d = ImageDraw.Draw(canvas)
             d.text((10,10), "Hero: " + heroName, fill=(0,0,0), font = font)
             d.text((10,30), "Specialization: " + heroRace.title() + " " + heroClass.title() + ".", fill=(0,0,0), font = font)
-            d.text((10,50), "Health: " + heroCurrentHealth + " / " + heroMaximumHealth, fill=(0,0,0), font = font)
+            d.text((10,50), "Health: " + str(heroCurrentHealth) + " / " + str(heroMaximumHealth), fill=(0,0,0), font = font)
+            d.text((30,100), heroGold + " gold", fill=(0,0,0), font = font)
             remainingHealth = int((int(heroCurrentHealth) / int(heroMaximumHealth)) * 62)
             ActualHealthBar = healthbar.crop((0,0,remainingHealth,22))
             canvas.paste(ActualHealthBar, (10, 70), mask=ActualHealthBar)
             canvas.paste(healthbarFrame, (10, 70), mask=healthbarFrame)
+            canvas.paste(goldCoin, (10, 100), mask=goldCoin)
             d.text((350,70), "Level: " + heroLevel, fill=(0,0,0), font = font)
             d.text((350,90), "EXP: " + heroEXP, fill=(0,0,0), font = font)
             d.text((350,50), "Armor: " + heroArmor, fill=(0,0,0), font = font)
@@ -201,6 +231,288 @@ async def on_message(message):
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA INVENTORY'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            Inventory = userdata[13]
+            parseItems = Inventory.split()
+            output = []
+            msg = "Your items:\n\n"
+            for i in parseItems:
+                currentItem = i
+                cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + currentItem + "';")
+                conn.commit()
+                itemQuery = cursor.fetchall()
+                for rows in itemQuery:
+                    for cols in rows:
+                        output.append("%s" % cols)
+                        if len(output) >= 8:
+                            itemName = output[0]
+                            itemDamage = output[1]
+                            itemStam = output[2]
+                            itemStr = output[3]
+                            itemInt = output[4]
+                            itemAgi = output[5]
+                            itemCrit = output[6]
+                            itemArmor = output[7]
+                            if len(itemName) > 0:
+                                msg += itemName
+                            if int(itemDamage) > 0:
+                                msg += "\nDamage: " + itemDamage
+                            if int(itemArmor) > 0:
+                                msg += "\nArmor: " + itemArmor
+                            if int(itemStam) > 0:
+                                msg += "\nStamina: " + itemStam
+                            if int(itemStr) > 0:
+                                msg += "\nStrength: " + itemStr
+                            if int(itemInt) > 0:
+                                msg += "\nIntellect: " + itemInt
+                            if int(itemAgi) > 0:
+                                msg += "\nAgility: " + itemAgi
+                            if int(itemCrit) > 0:
+                                msg += "\nCritical Hit Chance: " + itemCrit
+                            msg += "\n\n"
+                            output.clear()
+            await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA UNEQUIP'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            if len(message.content.split()) >= 3:
+                regexp = re.compile("unequip (.*)$")
+                name = regexp.search(message.content).group(1)
+                name = " ".join(name.split()).title()
+                cursor.execute("SELECT itemID FROM AzerothHeroesItems WHERE itemName = '" + name + "';")
+                conn.commit()
+                if cursor.rowcount:
+                    itemID = ""
+                    itemSlot = ""
+                    output = []
+                    itemQuery = cursor.fetchall()
+                    for rows in itemQuery:
+                        for cols in rows:
+                            output.append("%s" % cols)
+                    itemID = output[0]
+                    if itemID[:1] == "1":
+                        itemSlot = "heroHelm"
+                    if itemID[:1] == "2":
+                        itemSlot = "heroShoulders"
+                    if itemID[:1] == "3":
+                        itemSlot = "heroChest"
+                    if itemID[:1] == "4":
+                        itemSlot = "heroGloves"
+                    if itemID[:1] == "5":
+                        itemSlot = "heroBelt"
+                    if itemID[:1] == "6":
+                        itemSlot = "heroLegs"
+                    if itemID[:1] == "7":
+                        itemSlot = "heroFeet"
+                    if itemID[:1] == "8":
+                        itemSlot = "heroMH"
+                    if itemID[:1] == "9":
+                        itemSlot = "heroOH"
+                    execution = "SELECT " + itemSlot + " FROM AzerothHeroes WHERE userID = '" + usertoken + "';"
+                    cursor.execute(execution)
+                    conn.commit()
+                    if cursor.rowcount:
+                        secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(0) + " WHERE userID = '" + usertoken + "';"
+                        cursor.execute(secondExecution)
+                        conn.commit()
+                        heroMaximumHealth = int(userdata[15])
+                        heroStam = int(userdata[16])
+                        heroArmor = int(userdata[17])
+                        heroInt = int(userdata[18])
+                        heroStr = int(userdata[19])
+                        heroAgi = int(userdata[20])
+                        heroCrit = int(userdata[21])
+                        heroLevel = int(userdata[23])
+                        cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+                        conn.commit()
+                        statQuery = cursor.fetchall()
+                        for rows in statQuery:
+                            for cols in rows:
+                                output.append("%s" % cols)
+                                if len(output) >= 9:
+                                    print (output)
+                                    itemName = output[1]
+                                    itemDamage = output[2]
+                                    itemStam = output[3]
+                                    itemStr = output[4]
+                                    itemInt = output[5]
+                                    itemAgi = output[6]
+                                    itemCrit = output[7]
+                                    itemArmor = output[8]
+                                    heroArmor -= int(itemArmor)
+                                    heroStam -= int(itemStam)
+                                    heroStr -= int(itemStr)
+                                    heroInt -= int(itemInt)
+                                    heroAgi -= int(itemAgi)
+                                    heroCrit -= int(itemCrit)
+                                    heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
+                                    output.clear()
+                        cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
+                        conn.commit()
+                        await client.send_message(message.channel, "Successfully unequiped " + name)
+                    else:
+                        await client.send_message(message.channel, "You're not wearing that item.")
+                else:
+                    await client.send_message(message.channel, "We couldn't find your item. Please make sure you typed the full name correctly.")
+            else:
+                parseItems = [userdata[4],userdata[5],userdata[6],userdata[7],userdata[8],userdata[9],userdata[10],userdata[11],userdata[12]]
+                output = []
+                msg = "What would you like to unequip? Your current equipment:\n\n"
+                for i in parseItems:
+                    currentItem = i
+                    print (currentItem)
+                    cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + currentItem + "';")
+                    conn.commit()
+                    itemQuery = cursor.fetchall()
+                    for rows in itemQuery:
+                        for cols in rows:
+                            output.append("%s" % cols)
+                            if len(output) > 7:
+                                itemName = output[0]
+                                itemDamage = output[1]
+                                itemStam = output[2]
+                                itemStr = output[3]
+                                itemInt = output[4]
+                                itemAgi = output[5]
+                                itemCrit = output[6]
+                                itemArmor = output[7]
+                                if len(itemName) > 0:
+                                    msg += itemName
+                                if int(itemDamage) > 0:
+                                    msg += "\nDamage: " + itemDamage
+                                if int(itemArmor) > 0:
+                                    msg += "\nArmor: " + itemArmor
+                                if int(itemStam) > 0:
+                                    msg += "\nStamina: " + itemStam
+                                if int(itemStr) > 0:
+                                    msg += "\nStrength: " + itemStr
+                                if int(itemInt) > 0:
+                                    msg += "\nIntellect: " + itemInt
+                                if int(itemAgi) > 0:
+                                    msg += "\nAgility: " + itemAgi
+                                if int(itemCrit) > 0:
+                                    msg += "\nCritical Hit Chance: " + itemCrit
+                                msg += "\n\n"
+                                output.clear()
+                await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA EQUIP'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            Inventory = userdata[13]
+            if len(message.content.split()) >= 3:
+                regexp = re.compile("equip (.*)$")
+                name = regexp.search(message.content).group(1)
+                name = " ".join(name.split()).title()
+                cursor.execute("SELECT itemID FROM AzerothHeroesItems WHERE itemName = '" + name + "';")
+                conn.commit()
+                if cursor.rowcount:
+                    itemID = ""
+                    itemSlot = ""
+                    output = []
+                    itemQuery = cursor.fetchall()
+                    for rows in itemQuery:
+                        for cols in rows:
+                            output.append("%s" % cols)
+                    itemID = output[0]
+                    if itemID[:1] == "1":
+                        itemSlot = "heroHelm"
+                    if itemID[:1] == "2":
+                        itemSlot = "heroShoulders"
+                    if itemID[:1] == "3":
+                        itemSlot = "heroChest"
+                    if itemID[:1] == "4":
+                        itemSlot = "heroGloves"
+                    if itemID[:1] == "5":
+                        itemSlot = "heroBelt"
+                    if itemID[:1] == "6":
+                        itemSlot = "heroLegs"
+                    if itemID[:1] == "7":
+                        itemSlot = "heroFeet"
+                    if itemID[:1] == "8":
+                        itemSlot = "heroMH"
+                    if itemID[:1] == "9":
+                        itemSlot = "heroOH"
+                    if itemID not in Inventory:
+                        await client.send_message(message.channel, "You do not own that item.")
+                    else:
+                        secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(itemID) + " WHERE userID = '" + usertoken + "';"
+                        cursor.execute(secondExecution)
+                        conn.commit()
+                        heroMaximumHealth = int(userdata[15])
+                        heroStam = int(userdata[16])
+                        heroArmor = int(userdata[17])
+                        heroInt = int(userdata[18])
+                        heroStr = int(userdata[19])
+                        heroAgi = int(userdata[20])
+                        heroCrit = int(userdata[21])
+                        heroLevel = int(userdata[23])
+                        cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+                        conn.commit()
+                        statQuery = cursor.fetchall()
+                        for rows in statQuery:
+                            for cols in rows:
+                                output.append("%s" % cols)
+                                if len(output) >= 9:
+                                    print (output)
+                                    itemName = output[1]
+                                    itemDamage = output[2]
+                                    itemStam = output[3]
+                                    itemStr = output[4]
+                                    itemInt = output[5]
+                                    itemAgi = output[6]
+                                    itemCrit = output[7]
+                                    itemArmor = output[8]
+                                    heroArmor += int(itemArmor)
+                                    heroStam += int(itemStam)
+                                    heroStr += int(itemStr)
+                                    heroInt += int(itemInt)
+                                    heroAgi += int(itemAgi)
+                                    heroCrit += int(itemCrit)
+                                    heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
+                                    output.clear()
+                        cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
+                        conn.commit()
+                        await client.send_message(message.channel, "Successfully equiped " + name)
+                else:
+                    await client.send_message(message.channel, "We couldn't find your item. Please make sure you typed the full name correctly.")
+            else:
+                msg = "What would you like to equip? Type \"Mega Inventory\" to see your items."
+                await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA TRAIN'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
@@ -212,77 +524,50 @@ async def on_message(message):
             for row in query:
                 for col in row:
                     userdata.append("%s" % col)
-            heroName = userdata[1]
-            heroClass = userdata[2]
-            heroEXP = int(userdata[3])
-            heroLevel = int(userdata[4])
-            heroTrained = int(userdata[5])
-            currentTime = calendar.timegm(time.gmtime())
-            timeleft = int(currentTime) - int(heroTrained)
-            if timeleft > 43200:
-                heroEXP += 1
-                cursor.execute("UPDATE AzerothHeroes SET EXP = '" + str(heroEXP) + "' WHERE userID = '%" + usertoken + "%';")
+            heroCurrentHealth = userdata[14]
+            heroMaximumHealth = userdata[15]
+            heroStam = userdata[16]
+            heroArmor = userdata[17]
+            heroInt = userdata[18]
+            heroStr = userdata[19]
+            heroAgi = userdata[20]
+            heroCrit = userdata[21]
+            heroEXP = userdata[22]
+            heroLevel = userdata[23]
+            heroGold = userdata[24]
+            heroUpdateTimer = userdata[25]
+            carryOverTime = userdata[26]
+            if int(heroCurrentHealth) < int(heroMaximumHealth):
+                timeNow = calendar.timegm(time.gmtime())
+                timeSinceLast = timeNow - int(heroUpdateTimer)
+                healthToRegen = math.floor(timeSinceLast/180)
+                remainingTime = int(timeSinceLast) % 180
+                carryOverTime = int(carryOverTime) + int(remainingTime)
+                if int(carryOverTime) >= 180:
+                    carryOverTime = int(carryOverTime) - 180
+                    healthToRegen += 1
+                heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
+                if int(heroCurrentHealth) >= int(heroMaximumHealth):
+                    heroCurrentHealth = int(heroMaximumHealth)
+                    carryOverTime = 0
+            healthlost = round(random.uniform(20, 50) - (.1 * int(heroArmor)))
+            heroCurrentHealth = int(heroCurrentHealth) - int(healthlost)
+            if heroCurrentHealth <= 0:
+                MaxMinusOne = (int(heroMaximumHealth) - 1) * 180
+                cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(1) + "', timeUpdated = '" + str(timeNow) + "' WHERE userID = '" + usertoken + "';")
                 conn.commit()
-                cursor.execute("UPDATE AzerothHeroes SET timeTrained = '" + str(currentTime) + "' WHERE userID = '%" + usertoken + "%';")
-                conn.commit()
-                await client.send_message(message.channel, "Updated EXP for " + heroName + ".")
-                if heroEXP >= 2 and heroLevel <2:
-                    heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
-                    conn.commit()
-                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
-                elif heroEXP >= 4 and heroLevel <3:
-                    heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
-                    conn.commit()
-                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
-                elif heroEXP >= 8 and heroLevel <4:
-                    heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
-                    conn.commit()
-                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
-                elif heroEXP >= 16 and heroLevel <5:
-                    heroLevel += 1
-                    cursor.execute("UPDATE AzerothHeroes SET level = '" + str(heroLevel) + "' WHERE userID = '%" + usertoken + "%';")
-                    conn.commit()
-                    await client.send_message(message.channel, "Ding! You leveled up to level " + str(heroLevel) + ".")
-                if heroClass == 'knight':
-                    im = Image.open('knight.gif')
-                    frames = []
-                    for frame in ImageSequence.Iterator(im):
-                        font = ImageFont.truetype("helvetica.ttf", 20)
-                        d = ImageDraw.Draw(frame)
-                        d.text((10,10), "Name: " + heroName, font=font)
-                        d.text((10,30), "Level: " + str(heroLevel), font=font)
-                        d.text((10,50), "EXP: " + str(heroEXP), font=font)
-                        del d
-                        b = io.BytesIO()
-                        frame.save(b, format="GIF")
-                        frame = Image.open(b)
-                        frames.append(frame)
-                    frames[0].save('out.gif', save_all=True, append_images=frames[1:])
-                    await client.send_file(message.channel, 'out.gif')
-                    os.remove("out.gif")
-                if heroClass == 'mage':
-                    im = Image.open('mage.gif')
-                    frames = []
-                    for frame in ImageSequence.Iterator(im):
-                        font = ImageFont.truetype("helvetica.ttf", 20)
-                        d = ImageDraw.Draw(frame)
-                        d.text((10,10), "Name: " + heroName, font=font)
-                        d.text((10,30), "Level: " + str(heroLevel), font=font)
-                        d.text((10,50), "EXP: " + str(heroEXP), font=font)
-                        del d
-                        b = io.BytesIO()
-                        frame.save(b, format="GIF")
-                        frame = Image.open(b)
-                        frames.append(frame)
-                    frames[0].save('out.gif', save_all=True, append_images=frames[1:])
-                    await client.send_file(message.channel, 'out.gif')
-                    os.remove("out.gif")
+                msg = 'You suffered fatal damage and earned nothing. Rest up before training again!'.format(message)
+                await client.send_message(message.channel, msg)
             else:
-                timeToCalc = 43200 - (int(currentTime) - int(heroTrained))
-                await client.send_message(message.channel, "You have to wait " + str(datetime.timedelta(seconds=timeToCalc)) + " before you can train.")
+                goldGained = round(random.uniform(1, 3) * ((.1 * int(heroStr)) + (.1 * int(heroInt)) + (.1 * int(heroAgi))))
+                heroGold = int(heroGold) + int(goldGained)
+                heroEXP = int(heroEXP) + 1
+                heroLevel = math.floor(heroEXP/(round((0.04*(int(heroLevel)**3))+(0.8*(int(heroLevel)**2))+(2*int(heroLevel))))) + 1
+                cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', heroGold = '" + str(heroGold) + "', EXP = '" + str(heroEXP) + "', Level = '" + str(heroLevel) + "' WHERE userID = '" + usertoken + "';")
+                conn.commit()
+                msg = 'You succesfully completed training! You earned 1 EXP and ' + str(goldGained) + ' gold.\nYou lost ' + str(healthlost) + ' health.'.format(message)
+                await client.send_message(message.channel, msg)
+
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
@@ -329,6 +614,11 @@ async def on_message(message):
         msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
         await client.send_message(message.channel, msg)
         await client.send_file(message.channel, 'source.py')
+    if usermessage.startswith('MEGA ABORT THIS MISSION'):
+        msg = 'Deleting all files and data. I\'m outta here!'.format(message)
+        await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA SHOW ME THE COCK'):
+        await client.send_file(message.channel, 'thecock.png')
     conn.close()
 @client.event
 async def on_ready():
