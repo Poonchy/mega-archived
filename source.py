@@ -23,7 +23,7 @@ async def on_message(message):
         msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
         await client.send_message(message.author, msg)
     if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
-        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
+        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message)
         await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA CREATE HERO'):
         usertoken = '{0.author.mention}'.format(message)
@@ -31,7 +31,7 @@ async def on_message(message):
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         if not cursor.rowcount:
-            await client.send_message(message.channel, "You can create a character!\nSimply respond with (Mega create my orc/human knight/mage named XXX).")
+            await client.send_message(message.channel, "You can create a character!\nSimply respond with (Mega create my orc/human warrior/mage named XXX).")
         else:
             await client.send_message(message.channel, "You already have a character! Type in, 'Mega Hero' to view them!")
     if usermessage.startswith('MEGA CREATE MY'):
