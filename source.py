@@ -467,44 +467,56 @@ async def on_message(message):
                     if itemID not in Inventory:
                         await client.send_message(message.channel, "You do not own that item.")
                     else:
-                        secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(itemID) + " WHERE userID = '" + usertoken + "';"
-                        cursor.execute(secondExecution)
+                        cursor.execute("SELECT " + itemSlot + " FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
                         conn.commit()
-                        heroMaximumHealth = int(userdata[15])
-                        heroStam = int(userdata[16])
-                        heroArmor = int(userdata[17])
-                        heroInt = int(userdata[18])
-                        heroStr = int(userdata[19])
-                        heroAgi = int(userdata[20])
-                        heroCrit = int(userdata[21])
-                        heroLevel = int(userdata[23])
-                        cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
-                        conn.commit()
-                        statQuery = cursor.fetchall()
-                        for rows in statQuery:
+                        checkQuery = cursor.fetchall()
+                        itemsList = []
+                        for rows in checkQuery:
                             for cols in rows:
-                                output.append("%s" % cols)
-                                if len(output) >= 9:
-                                    print (output)
-                                    itemName = output[1]
-                                    itemDamage = output[2]
-                                    itemStam = output[3]
-                                    itemStr = output[4]
-                                    itemInt = output[5]
-                                    itemAgi = output[6]
-                                    itemCrit = output[7]
-                                    itemArmor = output[8]
-                                    heroArmor += int(itemArmor)
-                                    heroStam += int(itemStam)
-                                    heroStr += int(itemStr)
-                                    heroInt += int(itemInt)
-                                    heroAgi += int(itemAgi)
-                                    heroCrit += int(itemCrit)
-                                    heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
-                                    output.clear()
-                        cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
-                        conn.commit()
-                        await client.send_message(message.channel, "Successfully equiped " + name)
+                                itemsList.append("%s" % cols)
+                        itemSlotCheck = itemsList[0]
+                        print(itemSlotCheck)
+                        if int(itemSlotCheck) == 0:
+                            secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(itemID) + " WHERE userID = '" + usertoken + "';"
+                            cursor.execute(secondExecution)
+                            conn.commit()
+                            heroMaximumHealth = int(userdata[15])
+                            heroStam = int(userdata[16])
+                            heroArmor = int(userdata[17])
+                            heroInt = int(userdata[18])
+                            heroStr = int(userdata[19])
+                            heroAgi = int(userdata[20])
+                            heroCrit = int(userdata[21])
+                            heroLevel = int(userdata[23])
+                            cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+                            conn.commit()
+                            statQuery = cursor.fetchall()
+                            for rows in statQuery:
+                                for cols in rows:
+                                    output.append("%s" % cols)
+                                    if len(output) >= 9:
+                                        print (output)
+                                        itemName = output[1]
+                                        itemDamage = output[2]
+                                        itemStam = output[3]
+                                        itemStr = output[4]
+                                        itemInt = output[5]
+                                        itemAgi = output[6]
+                                        itemCrit = output[7]
+                                        itemArmor = output[8]
+                                        heroArmor += int(itemArmor)
+                                        heroStam += int(itemStam)
+                                        heroStr += int(itemStr)
+                                        heroInt += int(itemInt)
+                                        heroAgi += int(itemAgi)
+                                        heroCrit += int(itemCrit)
+                                        heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
+                                        output.clear()
+                            cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
+                            conn.commit()
+                            await client.send_message(message.channel, "Successfully equiped " + name)
+                        else:
+                            await client.send_message(message.channel, "You have an item equipped in that slot. Unequip it first.")
                 else:
                     await client.send_message(message.channel, "We couldn't find your item. Please make sure you typed the full name correctly.")
             else:
@@ -559,7 +571,7 @@ async def on_message(message):
                 msg = 'You suffered fatal damage and earned nothing. Rest up before training again!'.format(message)
                 await client.send_message(message.channel, msg)
             else:
-                goldGained = round(random.uniform(1, 3) * ((.1 * int(heroStr)) + (.1 * int(heroInt)) + (.1 * int(heroAgi))))
+                goldGained = round(random.uniform(1, 3) * ((.1 * int(heroStr)) + (.4 * int(heroInt)) + (.3 * int(heroAgi))))
                 heroGold = int(heroGold) + int(goldGained)
                 heroEXP = int(heroEXP) + 1
                 heroLevel = math.floor(heroEXP/(round((0.04*(int(heroLevel)**3))+(0.8*(int(heroLevel)**2))+(2*int(heroLevel))))) + 1
