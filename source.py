@@ -571,7 +571,7 @@ async def on_message(message):
                 msg = 'You suffered fatal damage and earned nothing. Rest up before training again!'.format(message)
                 await client.send_message(message.channel, msg)
             else:
-                goldGained = round(random.uniform(1, 3) * ((.1 * int(heroStr)) + (.4 * int(heroInt)) + (.3 * int(heroAgi))))
+                goldGained = round(random.uniform(1, 3) * ((.1 * int(heroStr)) + (.2 * int(heroInt)) + (.15 * int(heroAgi))))
                 heroGold = int(heroGold) + int(goldGained)
                 heroEXP = int(heroEXP) + 1
                 heroLevel = math.floor(heroEXP/(round((0.04*(int(heroLevel)**3))+(0.8*(int(heroLevel)**2))+(2*int(heroLevel))))) + 1
