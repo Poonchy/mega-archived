@@ -785,6 +785,10 @@ async def on_message(message):
                                     duelRecipGold = int(duelRecipGold) - int(goldEarned)
                                     duelInitEXPNeeded = math.floor((round((0.04*(int(duelInitLevel)**3))+(0.8*(int(duelInitLevel)**2))+(2*int(duelInitLevel)))))
                                     duelRecipEXPNeeded = math.floor((round((0.04*((int(duelRecipLevel) - 1)**3))+(0.8*((int(duelRecipLevel) - 1)**2))+(2*int(duelRecipLevel) -1 ))))
+                                    msg = 'Duel completed!\n' + duelInit + ' has earned ' + str(expEarned) + ' EXP and ' + str(goldEarned) + ' gold and lost ' + str(duelRecipDamageDone) + ' health.'.format(message)
+                                    await client.send_message(message.channel, msg)
+                                    msg = duelRecip + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and all of their health. Rest up and train some more!'.format(message)
+                                    await client.send_message(message.channel, msg)
                                     if int(duelInitEXP)>=int(duelInitEXPNeeded):
                                         duelInitLevel = int(duelInitLevel) + 1
                                         duelInitMaximumHealth = str(int(duelInitMaximumHealth) + 20)
@@ -818,10 +822,6 @@ async def on_message(message):
                                     conn.commit()
                                     cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
                                     conn.commit()
-                                    msg = 'Duel completed!\n' + duelInit + ' has earned ' + str(expEarned) + ' EXP and ' + str(goldEarned) + ' gold and lost ' + str(duelRecipDamageDone) + ' health.'.format(message)
-                                    await client.send_message(message.channel, msg)
-                                    msg = duelRecip + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold.' + duelRecip + ' and all of their health. Rest up and train some more!'.format(message)
-                                    await client.send_message(message.channel, msg)
                                 elif duelInitRoll < duelRecipRoll:
                                     duelInitDamageDone = ""
                                     if duelInitCritRoll < int(duelInitCrit):
@@ -853,6 +853,10 @@ async def on_message(message):
                                     duelInitGold = int(duelInitGold) - int(goldEarned)
                                     duelRecipEXPNeeded = math.floor((round((0.04*(int(duelRecipLevel)**3))+(0.8*(int(duelRecipLevel)**2))+(2*int(duelRecipLevel)))))
                                     duelInitEXPNeeded = math.floor((round((0.04*((int(duelInitLevel) - 1)**3))+(0.8*((int(duelInitLevel) - 1)**2))+(2*(int(duelInitLevel) -1 )))))
+                                    msg = 'Duel completed!\n' + duelRecip + ' has earned ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost ' + str(duelInitDamageDone) + ' health.'.format(message)
+                                    await client.send_message(message.channel, msg)
+                                    msg = duelInit + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost all of their health. Rest up and train some more!'.format(message)
+                                    await client.send_message(message.channel, msg)
                                     if int(duelRecipEXP)>=int(duelRecipEXPNeeded):
                                         duelRecipLevel = int(duelRecipLevel) + 1
                                         duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) + 20)
@@ -886,10 +890,6 @@ async def on_message(message):
                                     conn.commit()
                                     cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
                                     conn.commit()
-                                    msg = 'Duel completed!\n' + duelRecip + ' has earned ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost ' + str(duelInitDamageDone) + ' health.'.format(message)
-                                    await client.send_message(message.channel, msg)
-                                    msg = duelInit + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost all of their health. Rest up and train some more!'.format(message)
-                                    await client.send_message(message.channel, msg)
                         if duelBegan == False:
                             cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
                             conn.commit()
