@@ -922,13 +922,113 @@ async def on_message(message):
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA GAMBLE'):
-        print()
-    if usermessage.startswith('MEGA DUNGEON'):
-        print()
     if usermessage.startswith('MEGA SHOP'):
-        print()
-
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+        heroClass = userdata[3]
+        cursor.execute("SELECT itemName, itemID, itemCost FROM AzerothHeroesShop WHERE itemClass = '" + heroClass + "' OR `itemClass` = 'all';")
+        conn.commit()
+        itemQuery = cursor.fetchall()
+        itemData = []
+        msg = "Items for sale:\n\n"
+        for row in itemQuery:
+            for col in row:
+                itemData.append("%s" % col)
+            itemName = itemData[0]
+            itemID = itemData[1]
+            itemCost = itemData[2]
+            cursor.execute("SELECT itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+            conn.commit()
+            itemStats = cursor.fetchall()
+            if cursor.rowcount:
+                for rows in itemStats:
+                    for cols in rows:
+                        itemData.append("%s" % cols)
+                        if len(itemData) >= 10:
+                            itemDamage = itemData[3]
+                            itemStam = itemData[4]
+                            itemStr = itemData[5]
+                            itemInt = itemData[6]
+                            itemAgi = itemData[7]
+                            itemCrit = itemData[8]
+                            itemArmor = itemData[9]
+                            if len(itemName) > 0:
+                                msg += itemName
+                            if int(itemDamage) > 0:
+                                msg += "\nDamage: " + itemDamage
+                            if int(itemArmor) > 0:
+                                msg += "\nArmor: " + itemArmor
+                            if int(itemStam) > 0:
+                                msg += "\nStamina: " + itemStam
+                            if int(itemStr) > 0:
+                                msg += "\nStrength: " + itemStr
+                            if int(itemInt) > 0:
+                                msg += "\nIntellect: " + itemInt
+                            if int(itemAgi) > 0:
+                                msg += "\nAgility: " + itemAgi
+                            if int(itemCrit) > 0:
+                                msg += "\nCritical Hit Chance: " + itemCrit
+                            msg += "\nCost: " + itemCost + " gold.\n\n"
+                            itemData.clear()
+            else:
+                msg += itemName + "\nCost: " + itemCost + " gold.\n\n"
+        await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA BUY'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            userdata = []
+            for row in query:
+                for col in row:
+                    userdata.append("%s" % col)
+            regexp = re.compile("buy (.*)$")
+            name = regexp.search(message.content).group(1)
+            name = " ".join(name.split()).title()
+            heroClass = userdata[3]
+            heroGold = userdata[24]
+            Inventory = userdata[13]
+            cursor.execute("SELECT * FROM AzerothHeroesShop WHERE itemName = '" + name + "';")
+            conn.commit()
+            if cursor.rowcount:
+                itemQuery = cursor.fetchall()
+                itemdata = []
+                for row in itemQuery:
+                    for col in row:
+                        itemdata.append("%s" % col)
+                itemCost = itemdata[1]
+                itemID = itemdata[2]
+                itemClass = itemdata[3]
+                if str(itemClass) != str(heroClass) and str(itemClass) != "all":
+                    msg = usertoken + ', that item is not sold to your class. Type \'Mega Shop\' to see what you can buy.'.format(message)
+                    await client.send_message(message.channel, msg)
+                else:
+                    if int(itemCost) > int(heroGold):
+                        msg = usertoken + ', you cannot afford that item!'.format(message)
+                        await client.send_message(message.channel, msg)
+                    else:
+                        Inventory = Inventory + " " + itemID
+                        heroGold = int(heroGold) - int(itemCost)
+                        cursor.execute("UPDATE AzerothHeroes SET heroGold = '" + str(heroGold) + "', heroInventory = '" + str(Inventory) + "' WHERE userID = '" + usertoken + "';")
+                        conn.commit()
+                        msg = usertoken + ', you\'ve succesfully bought ' + name + '.'.format(message)
+                        await client.send_message(message.channel, msg)
+            else:
+                msg = usertoken + ', could not find the item. Make sure you spelled the name correctly.'.format(message)
+                await client.send_message(message.channel, msg)
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
@@ -972,6 +1072,7 @@ async def on_message(message):
         msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
         await client.send_message(message.channel, msg)
         await client.send_file(message.channel, 'source.py')
+    conn.close()
 @client.event
 async def on_ready():
     print('Logged in as')
