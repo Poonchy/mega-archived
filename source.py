@@ -274,7 +274,7 @@ async def on_message(message):
             Inventory = userdata[13]
             parseItems = Inventory.split()
             output = []
-            msg = "Your items:\n\n"
+            msg = "Your items:\n\n```"
             for i in parseItems:
                 currentItem = i
                 cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + str(currentItem) + "';")
@@ -310,6 +310,7 @@ async def on_message(message):
                                 msg += "\nCritical Hit Chance: " + itemCrit
                             msg += "\n\n"
                             output.clear()
+            msg += "```"
             await client.send_message(message.channel, msg)
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
