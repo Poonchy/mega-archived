@@ -316,7 +316,7 @@ async def on_message(message):
                     conn.commit()
                     shopQuery = cursor.fetchall()
                     for rows in shopQuery:
-                        msg += itemName
+                        msg += rows
                         msg += "\n\n"
             await client.send_message(message.channel, msg)
         else:
