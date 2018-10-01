@@ -280,36 +280,44 @@ async def on_message(message):
                 cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + currentItem + "';")
                 conn.commit()
                 itemQuery = cursor.fetchall()
-                for rows in itemQuery:
-                    for cols in rows:
-                        output.append("%s" % cols)
-                        if len(output) >= 8:
-                            itemName = output[0]
-                            itemDamage = output[1]
-                            itemStam = output[2]
-                            itemStr = output[3]
-                            itemInt = output[4]
-                            itemAgi = output[5]
-                            itemCrit = output[6]
-                            itemArmor = output[7]
-                            if len(itemName) > 0:
-                                msg += itemName
-                            if int(itemDamage) > 0:
-                                msg += "\nDamage: " + itemDamage
-                            if int(itemArmor) > 0:
-                                msg += "\nArmor: " + itemArmor
-                            if int(itemStam) > 0:
-                                msg += "\nStamina: " + itemStam
-                            if int(itemStr) > 0:
-                                msg += "\nStrength: " + itemStr
-                            if int(itemInt) > 0:
-                                msg += "\nIntellect: " + itemInt
-                            if int(itemAgi) > 0:
-                                msg += "\nAgility: " + itemAgi
-                            if int(itemCrit) > 0:
-                                msg += "\nCritical Hit Chance: " + itemCrit
-                            msg += "\n\n"
-                            output.clear()
+                if cursor.rowcount:
+                    for rows in itemQuery:
+                        for cols in rows:
+                            output.append("%s" % cols)
+                            if len(output) >= 8:
+                                itemName = output[0]
+                                itemDamage = output[1]
+                                itemStam = output[2]
+                                itemStr = output[3]
+                                itemInt = output[4]
+                                itemAgi = output[5]
+                                itemCrit = output[6]
+                                itemArmor = output[7]
+                                if len(itemName) > 0:
+                                    msg += itemName
+                                if int(itemDamage) > 0:
+                                    msg += "\nDamage: " + itemDamage
+                                if int(itemArmor) > 0:
+                                    msg += "\nArmor: " + itemArmor
+                                if int(itemStam) > 0:
+                                    msg += "\nStamina: " + itemStam
+                                if int(itemStr) > 0:
+                                    msg += "\nStrength: " + itemStr
+                                if int(itemInt) > 0:
+                                    msg += "\nIntellect: " + itemInt
+                                if int(itemAgi) > 0:
+                                    msg += "\nAgility: " + itemAgi
+                                if int(itemCrit) > 0:
+                                    msg += "\nCritical Hit Chance: " + itemCrit
+                                msg += "\n\n"
+                                output.clear()
+                else:
+                    cursor.execute("SELECT itemName FROM AzerothHeroesShop WHERE itemID = '" + currentItem + "';")
+                    conn.commit()
+                    shopQuery = cursor.fetchall()
+                    for rows in shopQuery:
+                        msg += itemName
+                        msg += "\n\n"
             await client.send_message(message.channel, msg)
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
