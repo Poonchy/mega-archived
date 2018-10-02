@@ -1086,12 +1086,10 @@ async def on_message(message):
         msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
         await client.send_message(message.channel, msg)
         await client.send_file(message.channel, 'source.py')
-    if usermessage.startswith('I\'M TRYING MY BEST, POONCHY'):
-        msg = 'Thanks jamie'.format(message)
+    if usermessage.startswith('MEGA RESTART'):
+        msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
         await client.send_message(message.channel, msg)
-    if usermessage.startswith('I\'M TRYING MY BEST, M.E.G.A.'):
-        msg = 'Thanks jamie'.format(message)
-        await client.send_message(message.channel, msg)
+        quit()
     conn.close()
 @client.event
 async def on_ready():
