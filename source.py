@@ -204,8 +204,10 @@ async def on_message(message):
                 if int(heroCurrentHealth) >= int(heroMaximumHealth):
                     heroCurrentHealth = int(heroMaximumHealth)
                     carryOverTime = 0
-                cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
-                conn.commit()
+            elif int(heroCurrentHealth) == int(heroMaximumHealth):
+                carryOverTime = 0
+            cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
+            conn.commit()
             background = Image.open('Items/white.jpg')
             hero = Image.open("Items/" + str(heroRace) + '.png')
             helmet = Image.open("Items/" + str(heroHelm) + '.png')
@@ -594,6 +596,10 @@ async def on_message(message):
                 if int(heroCurrentHealth) >= int(heroMaximumHealth):
                     heroCurrentHealth = int(heroMaximumHealth)
                     carryOverTime = 0
+            elif int(heroCurrentHealth) == int(heroMaximumHealth):
+                carryOverTime = 0
+            cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
+            conn.commit()
             healthlost = round(random.uniform(20, 50) - (.1 * int(heroArmor)))
             heroCurrentHealth = int(heroCurrentHealth) - int(healthlost)
             if heroCurrentHealth <= 0:
@@ -643,287 +649,289 @@ async def on_message(message):
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelInit + "';")
         conn.commit()
         if cursor.rowcount:
-            cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
-            conn.commit()
-            if cursor.rowcount:
-                if duelInit == duelRecip:
-                    msg = "You cannot duel yourself!"
-                    await client.send_message(message.channel, msg)
-                else:
-                    cursor.execute("SELECT DuelRecip FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #Check if someone else challenged them
-                    conn.commit()
-                    if cursor.rowcount:
-                        cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #get the person who challenged them
-                        conn.commit()
-                        duelInits = []
-                        query = cursor.fetchall()
-                        duelBegan = False
-                        for row in query:
-                            for col in row:
-                                duelInits.append("%s" % col)
-                        duelInitData = []
-                        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelInit + "';")
-                        conn.commit()
-                        query = cursor.fetchall()
-                        for row in query:
-                            for col in row:
-                                duelInitData.append("%s" % col)
-                        duelInitCurrentHealth = duelInitData[14]
-                        duelInitMaximumHealth = duelInitData[15]
-                        if int(duelInitMaximumHealth) * .20 > int(duelInitCurrentHealth):
-                            msg = duelInit + ", your health is too low to challenge someone to a duel! Rest up first.".format(message)
-                            await client.send_message(message.channel, msg)
-                        else:
-                            for i in duelInits:
-                                if i == duelRecip:
-                                    duelBegan = True
-                                    cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelRecip + "';")
-                                    conn.commit()
-                                    cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelInit + "';")
-                                    conn.commit()
-                                    duelRecipData = []
-                                    cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
-                                    conn.commit()
-                                    queryRecip = cursor.fetchall()
-                                    for row in queryRecip:
-                                        for col in row:
-                                            duelRecipData.append("%s" % col)
-                                    duelInitClass = duelInitData[3]
-                                    duelInitStam = duelInitData[16]
-                                    duelInitArmor = duelInitData[17]
-                                    duelInitInt = duelInitData[18]
-                                    duelInitStr = duelInitData[19]
-                                    duelInitAgi = duelInitData[20]
-                                    duelInitCrit = duelInitData[21]
-                                    duelInitEXP = duelInitData[22]
-                                    duelInitLevel = duelInitData[23]
-                                    duelInitGold = duelInitData[24]
-                                    duelInitUpdateTimer = duelInitData[25]
-                                    duelInitcarryOverTime = duelInitData[26]
-                                    duelInitDamage = duelInitData[27]
-                                    duelRecipClass = duelRecipData[3]
-                                    duelRecipCurrentHealth = duelRecipData[14]
-                                    duelRecipMaximumHealth = duelRecipData[15]
-                                    duelRecipStam = duelRecipData[16]
-                                    duelRecipArmor = duelRecipData[17]
-                                    duelRecipInt = duelRecipData[18]
-                                    duelRecipStr = duelRecipData[19]
-                                    duelRecipAgi = duelRecipData[20]
-                                    duelRecipCrit = duelRecipData[21]
-                                    duelRecipEXP = duelRecipData[22]
-                                    duelRecipLevel = duelRecipData[23]
-                                    duelRecipGold = duelRecipData[24]
-                                    duelRecipUpdateTimer = duelRecipData[25]
-                                    duelRecipcarryOverTime = duelRecipData[26]
-                                    duelRecipDamage = duelRecipData[27]
-                                    if int(duelInitCurrentHealth) < int(duelInitMaximumHealth):
-                                        timeNow = calendar.timegm(time.gmtime())
-                                        duelInittimeSinceLast = timeNow - int(duelInitUpdateTimer)
-                                        duelInithealthToRegen = math.floor(duelInittimeSinceLast/180)
-                                        duelInitremainingTime = int(duelInittimeSinceLast) % 180
-                                        duelInitcarryOverTime = int(duelInitcarryOverTime) + int(duelInitremainingTime)
-                                        while int(duelInitcarryOverTime) >= 180:
-                                            duelInitcarryOverTime = int(duelInitcarryOverTime) - 180
-                                            duelInithealthToRegen += 1
-                                        duelInitCurrentHealth = int(duelInithealthToRegen) + int(duelInitCurrentHealth)
-                                        if int(duelInitCurrentHealth) >= int(duelInitMaximumHealth):
-                                            duelInitCurrentHealth = int(duelInitMaximumHealth)
-                                            duelInitcarryOverTime = 0
-                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelInitcarryOverTime) + "' WHERE userID = '" + duelInit + "';")
-                                        conn.commit()
-                                    if int(duelRecipCurrentHealth) < int(duelRecipMaximumHealth):
-                                        timeNow = calendar.timegm(time.gmtime())
-                                        duelReciptimeSinceLast = timeNow - int(duelRecipUpdateTimer)
-                                        duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/180)
-                                        duelRecipremainingTime = int(duelReciptimeSinceLast) % 180
-                                        duelRecipcarryOverTime = int(duelRecipcarryOverTime) + int(duelRecipremainingTime)
-                                        while int(duelRecipcarryOverTime) >= 180:
-                                            duelRecipcarryOverTime = int(duelRecipcarryOverTime) - 180
-                                            duelReciphealthToRegen += 1
-                                        duelRecipCurrentHealth = int(duelReciphealthToRegen) + int(duelRecipCurrentHealth)
-                                        if int(duelRecipCurrentHealth) >= int(duelRecipMaximumHealth):
-                                            duelRecipCurrentHealth = int(duelRecipMaximumHealth)
-                                            duelRecipcarryOverTime = 0
-                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelRecipcarryOverTime) + "' WHERE userID = '" + duelRecip + "';")
-                                        conn.commit()
-                                    duelInitCritRoll = randint(0, 100)
-                                    duelRecipCritRoll = randint(0, 100)
-                                    duelInitRoll = 0
-                                    duelRecipRoll = 0
-                                    while duelInitRoll == duelRecipRoll:
-                                        if duelInitCritRoll < int(duelInitCrit):
-                                            duelInitRoll = 1.2 * (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
-                                        else:
-                                            duelInitRoll = (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
-                                        if duelRecipCritRoll < int(duelRecipCrit):
-                                            duelRecipRoll = 1.2 * (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
-                                        else:
-                                            duelRecipRoll = (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
-                                    if duelInitRoll > duelRecipRoll:
-                                        duelRecipDamageDone = ""
-                                        if duelRecipCritRoll < int(duelRecipCrit):
-                                            duelRecipDamageDone = round((1.5 * (1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
-                                        else:
-                                            duelRecipDamageDone = round(((1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
-                                        duelInitCurrentHealth = int(duelInitCurrentHealth) - int(duelRecipDamageDone)
-                                        if int(duelInitCurrentHealth) < 2:
-                                            duelInitCurrentHealth = "2"
-                                        goldEarned = 0
-                                        expEarned = 0
-                                        if 0 < int(duelRecipGold) < 10:
-                                            goldEarned = 1
-                                            expEarned = 1
-                                        elif 10 <= int(duelRecipGold):
-                                            goldEarned = math.ceil(int(duelRecipGold) * .1) + 1
-                                            expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
-                                        else:
-                                            goldEarned = 0
-                                        if 0 < int(duelRecipEXP) <= 4:
-                                            expEarned = 1
-                                        elif 4 < int(duelRecipEXP):
-                                            expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
-                                        else:
-                                            expEarned = 0 
-                                        duelInitEXP = int(duelInitEXP) + int(expEarned)
-                                        duelInitGold = int(duelInitGold) + int(goldEarned)
-                                        duelRecipEXP = int(duelRecipEXP) - int(expEarned)
-                                        duelRecipGold = int(duelRecipGold) - int(goldEarned)
-                                        duelInitEXPNeeded = math.floor((round((0.04*(int(duelInitLevel)**3))+(0.8*(int(duelInitLevel)**2))+(2*int(duelInitLevel)))))
-                                        duelRecipEXPNeeded = math.floor((round((0.04*((int(duelRecipLevel) - 1)**3))+(0.8*((int(duelRecipLevel) - 1)**2))+(2*int(duelRecipLevel) -1 ))))
-                                        msg = 'Duel completed!\n' + duelInit + ' has earned ' + str(expEarned) + ' EXP and ' + str(goldEarned) + ' gold and lost ' + str(duelRecipDamageDone) + ' health.'.format(message)
-                                        await client.send_message(message.channel, msg)
-                                        msg = duelRecip + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and all of their health. Rest up and train some more!'.format(message)
-                                        await client.send_message(message.channel, msg)
-                                        if int(duelInitEXP)>=int(duelInitEXPNeeded):
-                                            duelInitLevel = int(duelInitLevel) + 1
-                                            duelInitMaximumHealth = str(int(duelInitMaximumHealth) + 20)
-                                            duelInitCurrentHealth = str(int(duelInitCurrentHealth) + 20)
-                                            duelInitStam = int(duelInitStam) + 2
-                                            duelInitCrit = int(duelInitCrit) + 1
-                                            if duelInitClass == "warrior":
-                                                duelInitStr = int(duelInitStr) + 1
-                                            elif duelInitClass == "mage":
-                                                duelInitInt = int(duelInitInt) + 1
-                                            elif duelInitClass == "rogue":
-                                                duelInitAgi = int(duelInitAgi) + 1
-                                            msg = duelInit + ' has leveled up! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                            await client.send_message(message.channel, msg)
-                                        if int(duelRecipEXP)<int(duelRecipEXPNeeded) and int(duelRecipLevel) > 1:
-                                            duelRecipLevel = int(duelRecipLevel) - 1
-                                            duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) - 20)
-                                            duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) - 20)
-                                            duelRecipStam = int(duelRecipStam) - 2
-                                            duelRecipCrit = int(duelRecipCrit) - 1
-                                            if duelRecipClass == "warrior":
-                                                duelRecipStr = int(duelRecipStr) - 1
-                                            elif duelRecipClass == "mage":
-                                                duelRecipInt = int(duelRecipInt) - 1
-                                            elif duelRecipClass == "rogue":
-                                                duelRecipAgi = int(duelRecipAgi) - 1
-                                            msg = duelRecip + ' has lost a level! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                            await client.send_message(message.channel, msg)
-                                        duelRecipCurrentHealth = "1"
-                                        cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
-                                        conn.commit()
-                                        cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
-                                        conn.commit()
-                                    elif duelInitRoll < duelRecipRoll:
-                                        duelInitDamageDone = ""
-                                        if duelInitCritRoll < int(duelInitCrit):
-                                            duelInitDamageDone = round((1.5 * (1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
-                                        else:
-                                            duelInitDamageDone = round(((1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
-                                        duelRecipCurrentHealth = int(duelRecipCurrentHealth) - int(duelInitDamageDone)
-                                        if int(duelRecipCurrentHealth) < 2:
-                                            duelRecipCurrentHealth = "2"
-                                        goldEarned = 0
-                                        expEarned = 0
-                                        if 0 < int(duelInitGold) < 10:
-                                            goldEarned = 1
-                                            expEarned = 1
-                                        elif 10 <= int(duelInitGold):
-                                            goldEarned = math.ceil(int(duelInitGold) * .1) + 1
-                                            expEarned = math.ceil(int(duelInitEXP) * .1) + 1
-                                        else:
-                                            goldEarned = 0
-                                        if 0 < int(duelInitEXP) <= 4:
-                                            expEarned = 1
-                                        elif 4 < int(duelInitEXP):
-                                            expEarned = math.ceil(int(duelInitEXP) * .1) + 1
-                                        else:
-                                            expEarned = 0 
-                                        duelRecipEXP = int(duelRecipEXP) + int(expEarned)
-                                        duelRecipGold = int(duelRecipGold) + int(goldEarned)
-                                        duelInitEXP = int(duelInitEXP) - int(expEarned)
-                                        duelInitGold = int(duelInitGold) - int(goldEarned)
-                                        duelRecipEXPNeeded = math.floor((round((0.04*(int(duelRecipLevel)**3))+(0.8*(int(duelRecipLevel)**2))+(2*int(duelRecipLevel)))))
-                                        duelInitEXPNeeded = math.floor((round((0.04*((int(duelInitLevel) - 1)**3))+(0.8*((int(duelInitLevel) - 1)**2))+(2*(int(duelInitLevel) -1 )))))
-                                        msg = 'Duel completed!\n' + duelRecip + ' has earned ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost ' + str(duelInitDamageDone) + ' health.'.format(message)
-                                        await client.send_message(message.channel, msg)
-                                        msg = duelInit + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost all of their health. Rest up and train some more!'.format(message)
-                                        await client.send_message(message.channel, msg)
-                                        if int(duelRecipEXP)>=int(duelRecipEXPNeeded):
-                                            duelRecipLevel = int(duelRecipLevel) + 1
-                                            duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) + 20)
-                                            duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) + 20)
-                                            duelRecipStam = int(duelRecipStam) + 2
-                                            duelRecipCrit = int(duelRecipCrit) + 1
-                                            if duelRecipClass == "warrior":
-                                                duelRecipStr = int(duelRecipStr) + 1
-                                            elif duelRecipClass == "mage":
-                                                duelRecipInt = int(duelRecipInt) + 1
-                                            elif duelRecipClass == "rogue":
-                                                duelRecipAgi = int(duelRecipAgi) + 1
-                                            msg = duelRecip + ' has leveled up! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                            await client.send_message(message.channel, msg)
-                                        if int(duelInitEXP)<int(duelInitEXPNeeded) and int(duelInitLevel) > 1:
-                                            duelInitLevel = int(duelInitLevel) - 1
-                                            duelInitMaximumHealth = str(int(duelInitMaximumHealth) - 20)
-                                            duelInitCurrentHealth = str(int(duelInitCurrentHealth) - 20)
-                                            duelInitStam = int(duelInitStam) - 2
-                                            duelInitCrit = int(duelInitCrit) - 1
-                                            if duelInitClass == "warrior":
-                                                duelInitStr = int(duelInitStr) - 1
-                                            elif duelInitClass == "mage":
-                                                duelInitInt = int(duelInitInt) - 1
-                                            elif duelInitClass == "rogue":
-                                                duelInitAgi = int(duelInitAgi) - 1
-                                            msg = duelInit + ' has lost a level! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                            await client.send_message(message.channel, msg)
-                                        duelInitCurrentHealth = "1"
-                                        cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
-                                        conn.commit()
-                                        cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
-                                        conn.commit()
-                            if duelBegan == False:
-                                cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
-                                conn.commit()
-                                if cursor.rowcount:
-                                    cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
-                                    conn.commit()
-                                    msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                    await client.send_message(message.channel, msg)
-                                else:
-                                    cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
-                                    conn.commit()
-                                    msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                    await client.send_message(message.channel, msg)
+            duelInitData = []
+            query = cursor.fetchall()
+            for row in query:
+                for col in row:
+                    duelInitData.append("%s" % col)
+            duelInitCurrentHealth = duelInitData[14]
+            duelInitMaximumHealth = duelInitData[15]
+            if int(duelInitMaximumHealth) * .20 > int(duelInitCurrentHealth):
+                msg = duelInit + ", your health is too low to challenge someone to a duel! Rest up first.".format(message)
+                await client.send_message(message.channel, msg)
+            else:
+                cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
+                conn.commit()
+                if cursor.rowcount:
+                    if duelInit == duelRecip:
+                        msg = "You cannot duel yourself!"
+                        await client.send_message(message.channel, msg)
                     else:
-                        cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
+                        cursor.execute("SELECT DuelRecip FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #Check if someone else challenged them
                         conn.commit()
                         if cursor.rowcount:
-                            cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
+                            cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #get the person who challenged them
                             conn.commit()
-                            msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                            await client.send_message(message.channel, msg)
+                            duelInits = []
+                            query = cursor.fetchall()
+                            duelBegan = False
+                            for row in query:
+                                for col in row:
+                                    duelInits.append("%s" % col)
+                                for i in duelInits:
+                                    if i == duelRecip:
+                                        duelBegan = True
+                                        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelRecip + "';")
+                                        conn.commit()
+                                        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelInit + "';")
+                                        conn.commit()
+                                        duelRecipData = []
+                                        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
+                                        conn.commit()
+                                        queryRecip = cursor.fetchall()
+                                        for row in queryRecip:
+                                            for col in row:
+                                                duelRecipData.append("%s" % col)
+                                        duelInitClass = duelInitData[3]
+                                        duelInitStam = duelInitData[16]
+                                        duelInitArmor = duelInitData[17]
+                                        duelInitInt = duelInitData[18]
+                                        duelInitStr = duelInitData[19]
+                                        duelInitAgi = duelInitData[20]
+                                        duelInitCrit = duelInitData[21]
+                                        duelInitEXP = duelInitData[22]
+                                        duelInitLevel = duelInitData[23]
+                                        duelInitGold = duelInitData[24]
+                                        duelInitUpdateTimer = duelInitData[25]
+                                        duelInitcarryOverTime = duelInitData[26]
+                                        duelInitDamage = duelInitData[27]
+                                        duelRecipClass = duelRecipData[3]
+                                        duelRecipCurrentHealth = duelRecipData[14]
+                                        duelRecipMaximumHealth = duelRecipData[15]
+                                        duelRecipStam = duelRecipData[16]
+                                        duelRecipArmor = duelRecipData[17]
+                                        duelRecipInt = duelRecipData[18]
+                                        duelRecipStr = duelRecipData[19]
+                                        duelRecipAgi = duelRecipData[20]
+                                        duelRecipCrit = duelRecipData[21]
+                                        duelRecipEXP = duelRecipData[22]
+                                        duelRecipLevel = duelRecipData[23]
+                                        duelRecipGold = duelRecipData[24]
+                                        duelRecipUpdateTimer = duelRecipData[25]
+                                        duelRecipcarryOverTime = duelRecipData[26]
+                                        duelRecipDamage = duelRecipData[27]
+                                        if int(duelInitCurrentHealth) < int(duelInitMaximumHealth):
+                                            timeNow = calendar.timegm(time.gmtime())
+                                            duelInittimeSinceLast = timeNow - int(duelInitUpdateTimer)
+                                            duelInithealthToRegen = math.floor(duelInittimeSinceLast/180)
+                                            duelInitremainingTime = int(duelInittimeSinceLast) % 180
+                                            duelInitcarryOverTime = int(duelInitcarryOverTime) + int(duelInitremainingTime)
+                                            while int(duelInitcarryOverTime) >= 180:
+                                                duelInitcarryOverTime = int(duelInitcarryOverTime) - 180
+                                                duelInithealthToRegen += 1
+                                            duelInitCurrentHealth = int(duelInithealthToRegen) + int(duelInitCurrentHealth)
+                                            if int(duelInitCurrentHealth) >= int(duelInitMaximumHealth):
+                                                duelInitCurrentHealth = int(duelInitMaximumHealth)
+                                                duelInitcarryOverTime = 0
+                                        elif int(duelInitCurrentHealth) == int(duelInitMaximumHealth):
+                                            carryOverTime = 0
+                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelInitcarryOverTime) + "' WHERE userID = '" + duelInit + "';")
+                                        conn.commit()
+                                        if int(duelRecipCurrentHealth) < int(duelRecipMaximumHealth):
+                                            timeNow = calendar.timegm(time.gmtime())
+                                            duelReciptimeSinceLast = timeNow - int(duelRecipUpdateTimer)
+                                            duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/180)
+                                            duelRecipremainingTime = int(duelReciptimeSinceLast) % 180
+                                            duelRecipcarryOverTime = int(duelRecipcarryOverTime) + int(duelRecipremainingTime)
+                                            while int(duelRecipcarryOverTime) >= 180:
+                                                duelRecipcarryOverTime = int(duelRecipcarryOverTime) - 180
+                                                duelReciphealthToRegen += 1
+                                            duelRecipCurrentHealth = int(duelReciphealthToRegen) + int(duelRecipCurrentHealth)
+                                            if int(duelRecipCurrentHealth) >= int(duelRecipMaximumHealth):
+                                                duelRecipCurrentHealth = int(duelRecipMaximumHealth)
+                                                duelRecipcarryOverTime = 0
+                                        elif int(duelRecipCurrentHealth) == int(duelRecipMaximumHealth):
+                                            carryOverTime = 0
+                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelRecipcarryOverTime) + "' WHERE userID = '" + duelRecip + "';")
+                                        conn.commit()
+                                        duelInitCritRoll = randint(0, 100)
+                                        duelRecipCritRoll = randint(0, 100)
+                                        duelInitRoll = 0
+                                        duelRecipRoll = 0
+                                        while duelInitRoll == duelRecipRoll:
+                                            if duelInitCritRoll < int(duelInitCrit):
+                                                duelInitRoll = 1.2 * (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
+                                            else:
+                                                duelInitRoll = (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
+                                            if duelRecipCritRoll < int(duelRecipCrit):
+                                                duelRecipRoll = 1.2 * (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
+                                            else:
+                                                duelRecipRoll = (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
+                                        if duelInitRoll > duelRecipRoll:
+                                            duelRecipDamageDone = ""
+                                            if duelRecipCritRoll < int(duelRecipCrit):
+                                                duelRecipDamageDone = round((1.5 * (1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
+                                            else:
+                                                duelRecipDamageDone = round(((1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
+                                            duelInitCurrentHealth = int(duelInitCurrentHealth) - int(duelRecipDamageDone)
+                                            if int(duelInitCurrentHealth) < 2:
+                                                duelInitCurrentHealth = "2"
+                                            goldEarned = 0
+                                            expEarned = 0
+                                            if 0 < int(duelRecipGold) < 10:
+                                                goldEarned = 1
+                                                expEarned = 1
+                                            elif 10 <= int(duelRecipGold):
+                                                goldEarned = math.ceil(int(duelRecipGold) * .1) + 1
+                                                expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
+                                            else:
+                                                goldEarned = 0
+                                            if 0 < int(duelRecipEXP) <= 4:
+                                                expEarned = 1
+                                            elif 4 < int(duelRecipEXP):
+                                                expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
+                                            else:
+                                                expEarned = 0 
+                                            duelInitEXP = int(duelInitEXP) + int(expEarned)
+                                            duelInitGold = int(duelInitGold) + int(goldEarned)
+                                            duelRecipEXP = int(duelRecipEXP) - int(expEarned)
+                                            duelRecipGold = int(duelRecipGold) - int(goldEarned)
+                                            duelInitEXPNeeded = math.floor((round((0.04*(int(duelInitLevel)**3))+(0.8*(int(duelInitLevel)**2))+(2*int(duelInitLevel)))))
+                                            duelRecipEXPNeeded = math.floor((round((0.04*((int(duelRecipLevel) - 1)**3))+(0.8*((int(duelRecipLevel) - 1)**2))+(2*int(duelRecipLevel) -1 ))))
+                                            msg = 'Duel completed!\n' + duelInit + ' has earned ' + str(expEarned) + ' EXP and ' + str(goldEarned) + ' gold and lost ' + str(duelRecipDamageDone) + ' health.'.format(message)
+                                            await client.send_message(message.channel, msg)
+                                            msg = duelRecip + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and all of their health. Rest up and train some more!'.format(message)
+                                            await client.send_message(message.channel, msg)
+                                            if int(duelInitEXP)>=int(duelInitEXPNeeded):
+                                                duelInitLevel = int(duelInitLevel) + 1
+                                                duelInitMaximumHealth = str(int(duelInitMaximumHealth) + 20)
+                                                duelInitCurrentHealth = str(int(duelInitCurrentHealth) + 20)
+                                                duelInitStam = int(duelInitStam) + 2
+                                                duelInitCrit = int(duelInitCrit) + 1
+                                                if duelInitClass == "warrior":
+                                                    duelInitStr = int(duelInitStr) + 1
+                                                elif duelInitClass == "mage":
+                                                    duelInitInt = int(duelInitInt) + 1
+                                                elif duelInitClass == "rogue":
+                                                    duelInitAgi = int(duelInitAgi) + 1
+                                                msg = duelInit + ' has leveled up! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
+                                                await client.send_message(message.channel, msg)
+                                            if int(duelRecipEXP)<int(duelRecipEXPNeeded) and int(duelRecipLevel) > 1:
+                                                duelRecipLevel = int(duelRecipLevel) - 1
+                                                duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) - 20)
+                                                duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) - 20)
+                                                duelRecipStam = int(duelRecipStam) - 2
+                                                duelRecipCrit = int(duelRecipCrit) - 1
+                                                if duelRecipClass == "warrior":
+                                                    duelRecipStr = int(duelRecipStr) - 1
+                                                elif duelRecipClass == "mage":
+                                                    duelRecipInt = int(duelRecipInt) - 1
+                                                elif duelRecipClass == "rogue":
+                                                    duelRecipAgi = int(duelRecipAgi) - 1
+                                                msg = duelRecip + ' has lost a level! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
+                                                await client.send_message(message.channel, msg)
+                                            duelRecipCurrentHealth = "1"
+                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
+                                            conn.commit()
+                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
+                                            conn.commit()
+                                        elif duelInitRoll < duelRecipRoll:
+                                            duelInitDamageDone = ""
+                                            if duelInitCritRoll < int(duelInitCrit):
+                                                duelInitDamageDone = round((1.5 * (1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
+                                            else:
+                                                duelInitDamageDone = round(((1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
+                                            duelRecipCurrentHealth = int(duelRecipCurrentHealth) - int(duelInitDamageDone)
+                                            if int(duelRecipCurrentHealth) < 2:
+                                                duelRecipCurrentHealth = "2"
+                                            goldEarned = 0
+                                            expEarned = 0
+                                            if 0 < int(duelInitGold) < 10:
+                                                goldEarned = 1
+                                                expEarned = 1
+                                            elif 10 <= int(duelInitGold):
+                                                goldEarned = math.ceil(int(duelInitGold) * .1) + 1
+                                                expEarned = math.ceil(int(duelInitEXP) * .1) + 1
+                                            else:
+                                                goldEarned = 0
+                                            if 0 < int(duelInitEXP) <= 4:
+                                                expEarned = 1
+                                            elif 4 < int(duelInitEXP):
+                                                expEarned = math.ceil(int(duelInitEXP) * .1) + 1
+                                            else:
+                                                expEarned = 0 
+                                            duelRecipEXP = int(duelRecipEXP) + int(expEarned)
+                                            duelRecipGold = int(duelRecipGold) + int(goldEarned)
+                                            duelInitEXP = int(duelInitEXP) - int(expEarned)
+                                            duelInitGold = int(duelInitGold) - int(goldEarned)
+                                            duelRecipEXPNeeded = math.floor((round((0.04*(int(duelRecipLevel)**3))+(0.8*(int(duelRecipLevel)**2))+(2*int(duelRecipLevel)))))
+                                            duelInitEXPNeeded = math.floor((round((0.04*((int(duelInitLevel) - 1)**3))+(0.8*((int(duelInitLevel) - 1)**2))+(2*(int(duelInitLevel) -1 )))))
+                                            msg = 'Duel completed!\n' + duelRecip + ' has earned ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost ' + str(duelInitDamageDone) + ' health.'.format(message)
+                                            await client.send_message(message.channel, msg)
+                                            msg = duelInit + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost all of their health. Rest up and train some more!'.format(message)
+                                            await client.send_message(message.channel, msg)
+                                            if int(duelRecipEXP)>=int(duelRecipEXPNeeded):
+                                                duelRecipLevel = int(duelRecipLevel) + 1
+                                                duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) + 20)
+                                                duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) + 20)
+                                                duelRecipStam = int(duelRecipStam) + 2
+                                                duelRecipCrit = int(duelRecipCrit) + 1
+                                                if duelRecipClass == "warrior":
+                                                    duelRecipStr = int(duelRecipStr) + 1
+                                                elif duelRecipClass == "mage":
+                                                    duelRecipInt = int(duelRecipInt) + 1
+                                                elif duelRecipClass == "rogue":
+                                                    duelRecipAgi = int(duelRecipAgi) + 1
+                                                msg = duelRecip + ' has leveled up! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
+                                                await client.send_message(message.channel, msg)
+                                            if int(duelInitEXP)<int(duelInitEXPNeeded) and int(duelInitLevel) > 1:
+                                                duelInitLevel = int(duelInitLevel) - 1
+                                                duelInitMaximumHealth = str(int(duelInitMaximumHealth) - 20)
+                                                duelInitCurrentHealth = str(int(duelInitCurrentHealth) - 20)
+                                                duelInitStam = int(duelInitStam) - 2
+                                                duelInitCrit = int(duelInitCrit) - 1
+                                                if duelInitClass == "warrior":
+                                                    duelInitStr = int(duelInitStr) - 1
+                                                elif duelInitClass == "mage":
+                                                    duelInitInt = int(duelInitInt) - 1
+                                                elif duelInitClass == "rogue":
+                                                    duelInitAgi = int(duelInitAgi) - 1
+                                                msg = duelInit + ' has lost a level! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
+                                                await client.send_message(message.channel, msg)
+                                            duelInitCurrentHealth = "1"
+                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
+                                            conn.commit()
+                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
+                                            conn.commit()
+                                if duelBegan == False:
+                                    cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
+                                    conn.commit()
+                                    if cursor.rowcount:
+                                        cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
+                                        conn.commit()
+                                        msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
+                                        await client.send_message(message.channel, msg)
+                                    else:
+                                        cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
+                                        conn.commit()
+                                        msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
+                                        await client.send_message(message.channel, msg)
                         else:
-                            cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
+                            cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
                             conn.commit()
-                            msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                            await client.send_message(message.channel, msg)
-            else:
-                msg = 'The user you challenged does not have a character.'.format(message)
-                await client.send_message(message.channel, msg)
+                            if cursor.rowcount:
+                                cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
+                                conn.commit()
+                                msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
+                                await client.send_message(message.channel, msg)
+                            else:
+                                cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
+                                conn.commit()
+                                msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
+                                await client.send_message(message.channel, msg)
+                else:
+                    msg = 'The user you challenged does not have a character.'.format(message)
+                    await client.send_message(message.channel, msg)
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
