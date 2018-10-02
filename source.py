@@ -1030,6 +1030,19 @@ async def on_message(message):
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
+    if usermessage.startswith('MEGA DUNGEON'):
+        print()
+    if usermessage.startswith('MEGA DEADMINES'):
+        usertoken = '{0.author.mention}'.format(message)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        if cursor.rowcount:
+            print()
+        else:
+            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA DELETE'):
         usertoken = '{0.author.mention}'.format(message)
         cursor = conn.cursor()
@@ -1073,6 +1086,12 @@ async def on_message(message):
         msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
         await client.send_message(message.channel, msg)
         await client.send_file(message.channel, 'source.py')
+    if usermessage.startswith('I\'M TRYING MY BEST, POONCHY'):
+        msg = 'Thanks jamie'.format(message)
+        await client.send_message(message.channel, msg)
+    if usermessage.startswith('I\'M TRYING MY BEST, M.E.G.A.'):
+        msg = 'Thanks jamie'.format(message)
+        await client.send_message(message.channel, msg)
     conn.close()
 @client.event
 async def on_ready():
@@ -1082,3 +1101,5 @@ async def on_ready():
     print('------')
     await client.change_presence(game=discord.Game(name='Mega Help'))
 client.run(TOKEN)
+
+
