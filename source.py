@@ -191,8 +191,8 @@ async def on_message(message):
             heroGold = userdata[24]
             heroUpdateTimer = userdata[25]
             carryOverTime = userdata[26]
+            timeNow = calendar.timegm(time.gmtime())
             if int(heroCurrentHealth) < int(heroMaximumHealth):
-                timeNow = calendar.timegm(time.gmtime())
                 timeSinceLast = timeNow - int(heroUpdateTimer)
                 healthToRegen = math.floor(timeSinceLast/180)
                 remainingTime = int(timeSinceLast) % 180
@@ -583,8 +583,8 @@ async def on_message(message):
             heroUpdateTimer = userdata[25]
             carryOverTime = userdata[26]
             heroDamage = userdata[27]
+            timeNow = calendar.timegm(time.gmtime())
             if int(heroCurrentHealth) < int(heroMaximumHealth):
-                timeNow = calendar.timegm(time.gmtime())
                 timeSinceLast = timeNow - int(heroUpdateTimer)
                 healthToRegen = math.floor(timeSinceLast/180)
                 remainingTime = int(timeSinceLast) % 180
@@ -720,8 +720,8 @@ async def on_message(message):
                                         duelRecipUpdateTimer = duelRecipData[25]
                                         duelRecipcarryOverTime = duelRecipData[26]
                                         duelRecipDamage = duelRecipData[27]
+                                        timeNow = calendar.timegm(time.gmtime())
                                         if int(duelInitCurrentHealth) < int(duelInitMaximumHealth):
-                                            timeNow = calendar.timegm(time.gmtime())
                                             duelInittimeSinceLast = timeNow - int(duelInitUpdateTimer)
                                             duelInithealthToRegen = math.floor(duelInittimeSinceLast/180)
                                             duelInitremainingTime = int(duelInittimeSinceLast) % 180
@@ -738,7 +738,6 @@ async def on_message(message):
                                         cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelInitcarryOverTime) + "' WHERE userID = '" + duelInit + "';")
                                         conn.commit()
                                         if int(duelRecipCurrentHealth) < int(duelRecipMaximumHealth):
-                                            timeNow = calendar.timegm(time.gmtime())
                                             duelReciptimeSinceLast = timeNow - int(duelRecipUpdateTimer)
                                             duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/180)
                                             duelRecipremainingTime = int(duelReciptimeSinceLast) % 180
@@ -1051,9 +1050,34 @@ async def on_message(message):
         conn.commit()
         query = cursor.fetchall()
         if cursor.rowcount:
-            msg = '```You walk to deadmines, do you wish to enter and begin killing?```.'.format(message)
-            await client.send_message(message.channel, msg)
-            bot.add_reaction(message, emoji)
+            msg = await client.send_message(message.channel, '```You\'ve reached the entrance to The Deadmines, do you wish to enter or flee?```'.format(message))
+            await client.add_reaction(msg, '🏃')
+            await client.add_reaction(msg, '⚔')
+            res = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=msg, timeout = 10)
+            try:
+                userReaction = '{0.reaction.emoji}'.format(res)
+                if userReaction == "⚔":
+                    msg = await client.send_message(message.channel, '```You\'re now face to face with Glubtok, the first boss. Do you wish to engage in combat or flee, and live another day?```'.format(message))
+                    await client.add_reaction(msg, '🏃')
+                    await client.add_reaction(msg, '⚔')
+                    res = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=msg, timeout = 10)
+                    try:
+                        userReaction = '{0.reaction.emoji}'.format(res)
+                        if userReaction == "⚔":
+                            print("fight")
+                        else:
+                            msg = '```You flee to live another day.```'.format(message)
+                            await client.send_message(message.channel, msg)
+                    except:
+                        msg = '```You flee to live another day.```'.format(message)
+                        await client.send_message(message.channel, msg)
+                else:
+                    msg = '```You flee to live another day.```'.format(message)
+                    await client.send_message(message.channel, msg)
+            except:
+                msg = '```You flee to live another day.```'.format(message)
+                await client.send_message(message.channel, msg)
+            await client.send_message(message.channel, '{0.user} reacted with {0.reaction.emoji}!'.format(res))
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
@@ -1085,9 +1109,9 @@ async def on_message(message):
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA SOURCE'):
-        msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
-        await client.send_message(message.channel, msg)
-        await client.send_file(message.channel, 'source.py')
+        #msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
+        #await client.send_message(message.channel, msg)
+        #await client.send_file(message.channel, 'source.py')
     if usermessage.startswith('MEGA RESTART'):
         msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
         await client.send_message(message.channel, msg)
@@ -1101,5 +1125,3 @@ async def on_ready():
     print('------')
     await client.change_presence(game=discord.Game(name='Mega Help'))
 client.run(TOKEN)
-
-
