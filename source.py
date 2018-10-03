@@ -1109,9 +1109,9 @@ async def on_message(message):
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA SOURCE'):
-        #msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
-        #await client.send_message(message.channel, msg)
-        #await client.send_file(message.channel, 'source.py')
+        msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
+        await client.send_message(message.channel, msg)
+        await client.send_file(message.channel, 'source.py')
     if usermessage.startswith('MEGA RESTART'):
         msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
         await client.send_message(message.channel, msg)
