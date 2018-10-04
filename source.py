@@ -193,12 +193,13 @@ async def on_message(message):
             carryOverTime = userdata[26]
             timeNow = calendar.timegm(time.gmtime())
             if int(heroCurrentHealth) < int(heroMaximumHealth):
+                timerUsed = 3600 / (int(heroMaximumHealth) * .15)
                 timeSinceLast = timeNow - int(heroUpdateTimer)
-                healthToRegen = math.floor(timeSinceLast/180)
-                remainingTime = int(timeSinceLast) % 180
-                carryOverTime = int(carryOverTime) + int(remainingTime)
-                while int(carryOverTime) >= 180:
-                    carryOverTime = int(carryOverTime) - 180
+                healthToRegen = math.floor(timeSinceLast/timerUsed)
+                remainingTime = int(timeSinceLast) % timerUsed
+                carryOverTime = float(carryOverTime) + int(remainingTime)
+                while float(carryOverTime) >= timerUsed:
+                    carryOverTime = float(carryOverTime) - timerUsed
                     healthToRegen += 1
                 heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
                 if int(heroCurrentHealth) >= int(heroMaximumHealth):
@@ -585,12 +586,13 @@ async def on_message(message):
             heroDamage = userdata[27]
             timeNow = calendar.timegm(time.gmtime())
             if int(heroCurrentHealth) < int(heroMaximumHealth):
+                timerUsed = 3600 / (int(heroMaximumHealth) * .15)
                 timeSinceLast = timeNow - int(heroUpdateTimer)
-                healthToRegen = math.floor(timeSinceLast/180)
-                remainingTime = int(timeSinceLast) % 180
-                carryOverTime = int(carryOverTime) + int(remainingTime)
-                while int(carryOverTime) >= 180:
-                    carryOverTime = int(carryOverTime) - 180
+                healthToRegen = math.floor(timeSinceLast/timerUsed)
+                remainingTime = int(timeSinceLast) % timerUsed
+                carryOverTime = float(carryOverTime) + int(remainingTime)
+                while float(carryOverTime) >= timerUsed:
+                    carryOverTime = float(carryOverTime) - timerUsed
                     healthToRegen += 1
                 heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
                 if int(heroCurrentHealth) >= int(heroMaximumHealth):
@@ -722,12 +724,13 @@ async def on_message(message):
                                         duelRecipDamage = duelRecipData[27]
                                         timeNow = calendar.timegm(time.gmtime())
                                         if int(duelInitCurrentHealth) < int(duelInitMaximumHealth):
+                                            duelInitTimerUsed = 3600 / (int(duelInitMaximumHealth) * .15)
                                             duelInittimeSinceLast = timeNow - int(duelInitUpdateTimer)
-                                            duelInithealthToRegen = math.floor(duelInittimeSinceLast/180)
-                                            duelInitremainingTime = int(duelInittimeSinceLast) % 180
-                                            duelInitcarryOverTime = int(duelInitcarryOverTime) + int(duelInitremainingTime)
-                                            while int(duelInitcarryOverTime) >= 180:
-                                                duelInitcarryOverTime = int(duelInitcarryOverTime) - 180
+                                            duelInithealthToRegen = math.floor(duelInittimeSinceLast/duelInitTimerUsed)
+                                            duelInitremainingTime = int(duelInittimeSinceLast) % duelInitTimerUsed
+                                            duelInitcarryOverTime = float(duelInitcarryOverTime) + int(duelInitremainingTime)
+                                            while float(duelInitcarryOverTime) >= duelInitTimerUsed:
+                                                duelInitcarryOverTime = float(duelInitcarryOverTime) - duelInitTimerUsed
                                                 duelInithealthToRegen += 1
                                             duelInitCurrentHealth = int(duelInithealthToRegen) + int(duelInitCurrentHealth)
                                             if int(duelInitCurrentHealth) >= int(duelInitMaximumHealth):
@@ -738,12 +741,13 @@ async def on_message(message):
                                         cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelInitcarryOverTime) + "' WHERE userID = '" + duelInit + "';")
                                         conn.commit()
                                         if int(duelRecipCurrentHealth) < int(duelRecipMaximumHealth):
+                                            duelRecipTimerUsed = 3600 / (int(duelRecipMaximumHealth) * .15)
                                             duelReciptimeSinceLast = timeNow - int(duelRecipUpdateTimer)
-                                            duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/180)
-                                            duelRecipremainingTime = int(duelReciptimeSinceLast) % 180
-                                            duelRecipcarryOverTime = int(duelRecipcarryOverTime) + int(duelRecipremainingTime)
-                                            while int(duelRecipcarryOverTime) >= 180:
-                                                duelRecipcarryOverTime = int(duelRecipcarryOverTime) - 180
+                                            duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/duelRecipTimerUsed)
+                                            duelRecipremainingTime = int(duelReciptimeSinceLast) % duelRecipTimerUsed
+                                            duelRecipcarryOverTime = float(duelRecipcarryOverTime) + int(duelRecipremainingTime)
+                                            while float(duelRecipcarryOverTime) >= duelRecipTimerUsed:
+                                                duelRecipcarryOverTime = float(duelRecipcarryOverTime) - duelRecipTimerUsed
                                                 duelReciphealthToRegen += 1
                                             duelRecipCurrentHealth = int(duelReciphealthToRegen) + int(duelRecipCurrentHealth)
                                             if int(duelRecipCurrentHealth) >= int(duelRecipMaximumHealth):
@@ -1049,6 +1053,9 @@ async def on_message(message):
         cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
         conn.commit()
         query = cursor.fetchall()
+        def flee():
+            msg = '```You flee to live another day.```'.format(message)
+            client.send_message(message.channel, msg)
         if cursor.rowcount:
             msg = await client.send_message(message.channel, '```You\'ve reached the entrance to The Deadmines, do you wish to enter or flee?```'.format(message))
             await client.add_reaction(msg, '🏃')
@@ -1066,18 +1073,13 @@ async def on_message(message):
                         if userReaction == "⚔":
                             print("fight")
                         else:
-                            msg = '```You flee to live another day.```'.format(message)
-                            await client.send_message(message.channel, msg)
+                            await flee()
                     except:
-                        msg = '```You flee to live another day.```'.format(message)
-                        await client.send_message(message.channel, msg)
+                        await flee()
                 else:
-                    msg = '```You flee to live another day.```'.format(message)
-                    await client.send_message(message.channel, msg)
+                    await flee()
             except:
-                msg = '```You flee to live another day.```'.format(message)
-                await client.send_message(message.channel, msg)
-            await client.send_message(message.channel, '{0.user} reacted with {0.reaction.emoji}!'.format(res))
+                await flee()
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
@@ -1108,10 +1110,6 @@ async def on_message(message):
         else:
             msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
             await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA SOURCE'):
-        msg = 'Created by Poonchy, check out my other works:\nhttps://poonchy.github.io'.format(message)
-        await client.send_message(message.channel, msg)
-        await client.send_file(message.channel, 'source.py')
     if usermessage.startswith('MEGA RESTART'):
         msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
         await client.send_message(message.channel, msg)
