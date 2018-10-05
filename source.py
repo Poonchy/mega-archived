@@ -648,10 +648,6 @@ async def on_message(message):
                 print(e)
                 await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
 
-    
-    if usermessage.startswith('MEGA RESET'):
-        cursor.execute("update azerothheroes set heroRunning = 'no';")
-        conn.commit()
     if usermessage.startswith('MEGA DELETE'):
         try:
             findUserData(usertoken)
@@ -668,9 +664,6 @@ async def on_message(message):
         except Exception as e:
             print(e)
             await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
-    if usermessage.startswith('MEGA RESTART'):
-        await client.send_message(message.channel, 'Systems integrity damaged. Shutting d-down...')
-        quit()
     conn.close()
 @client.event
 async def on_ready():
