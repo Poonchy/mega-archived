@@ -197,7 +197,7 @@ async def on_message(message):
         carryOverTime = userData["carryOverTime"]
         heroUpdateTimer = userData["heroUpdateTimer"]
         if int(heroCurrentHealth) < int(heroMaximumHealth):
-            timerUsed = 3600 / (int(heroMaximumHealth) * .15)
+            timerUsed = 3600 / (int(heroMaximumHealth) * .20)
             timeSinceLast = timeNow - int(heroUpdateTimer)
             healthToRegen = math.floor(timeSinceLast/timerUsed)
             remainingTime = int(timeSinceLast) % timerUsed
@@ -315,11 +315,6 @@ async def on_message(message):
         cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + where + "';")
         conn.commit()
 
-    #Functions for loops
-    def isRunning(userID, ifR):
-        stillRunning = ifR
-        updateCharacter("heroRunning", ifR, userID)
-
     usermessage = message.content.upper() 
     if message.author == client.user:
         return
@@ -421,12 +416,12 @@ async def on_message(message):
                 await client.send_message(message.channel, "Your response was formatted incorrectly. Make sure to include your race, class and name! An example:\nMega create my orc warrior named zugzug.")
     if usermessage.startswith('MEGA HERO'):
         if len(usermessage.split()) >= 3:
-            user = subStringAfter("hero")
+            userTag = subStringAfter("hero")
         else:
-            user = usertoken
+            userTag = usertoken
         try:
-            findUserData(user)
-            updateHealth(user)
+            updateHealth(userTag)
+            findUserData(userTag)
             dispHelm = userData['heroRace'] + userData['heroHelmet']
             dispShoulder = userData['heroRace'] + userData['heroShoulder']
             dispChest = userData['heroRace'] + userData['heroChest']
@@ -562,20 +557,21 @@ async def on_message(message):
                 await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA TRAIN'):
         try:
-            findUserData(usertoken)
             updateHealth(usertoken)
+            findUserData(usertoken)
             if userData["heroRunning"] == "no":
                 stillRunning = "yes"
                 updateCharacter("heroRunning", "yes", usertoken)
                 while stillRunning == "yes":
-                    findUserData(usertoken)
                     updateHealth(usertoken)
+                    findUserData(usertoken)
                     healthlost = round(random.uniform(30 + (10 * int(userData["heroLevel"])), 40 + (10 * int(userData["heroLevel"]))) - (.25 * int(userData["heroArmor"])))
                     newHealth = int(userData["heroCurrentHealth"]) - int(healthlost)
                     if int(newHealth) <= int(0):
                         failedAttempt(usertoken)
                         await client.send_message(message.channel, usertoken + '```Try as you might, you were too weary and collapsed during training.\nRest up before training again!```')
-                        isRunning(usertoken, "no")
+                        stillRunning = "no"
+                        updateCharacter("heroRunning", "no", usertoken)
                         break
                     else:
                         gold = goldGained(1,3,usertoken)
@@ -596,14 +592,17 @@ async def on_message(message):
                             userReaction = '{0.reaction.emoji}'.format(res)
                             if userReaction == "⚔":
                                 await client.delete_message(reloop)
-                                isRunning(usertoken, "yes")
+                                stillRunning = "yes"
+                                updateCharacter("heroRunning", "yes", usertoken)
                             elif userReaction == "💤":
-                                isRunning(usertoken, "no")
+                                stillRunning = "no"
+                                updateCharacter("heroRunning", "no", usertoken)
                                 await client.send_message(message.channel, "```You chose to rest up and train another day.```")
                                 break
                         except Exception as e:
                             print(e)
-                            isRunning(usertoken, "no")
+                            stillRunning = "no"
+                            updateCharacter("heroRunning", "no", usertoken)
                             await client.send_message(message.channel, "```After contemplating for awhile, you chose to rest up and train another day.```")
                             break
                         userReaction = ""
@@ -649,6 +648,7 @@ async def on_message(message):
                 print(e)
                 await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
 
+    
     if usermessage.startswith('MEGA RESET'):
         cursor.execute("update azerothheroes set heroRunning = 'no';")
         conn.commit()
@@ -669,8 +669,7 @@ async def on_message(message):
             print(e)
             await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA RESTART'):
-        msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
-        await client.send_message(message.channel, msg)
+        await client.send_message(message.channel, 'Systems integrity damaged. Shutting d-down...')
         quit()
     conn.close()
 @client.event
