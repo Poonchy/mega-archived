@@ -262,7 +262,7 @@ async def on_message(message):
         updateCharacter("heroCurrentHealth", str(int(userData["heroCurrentHealth"]) + heroCHChange), userID)
     def goldGained(min, max, userID):
         findUserData(userID)
-        goldGained = round(random.uniform(min, max) * (((.3 * int(userData["heroDamage"])) + (.2 * int(userData["heroStr"])) + (.2 * int(userData["heroInt"])) + (.2 * int(userData["heroAgi"])))))
+        goldGained = round(random.uniform(min, max) * (((.15 * int(userData["heroDamage"])) + (.1 * int(userData["heroStr"])) + (.15 * int(userData["heroInt"])) + (.1 * int(userData["heroAgi"])))))
         newGold = goldGained + int(userData['heroGold'])
         updateCharacter("heroGold", str(newGold), userID)
         return goldGained
@@ -570,7 +570,7 @@ async def on_message(message):
                 while stillRunning == "yes":
                     findUserData(usertoken)
                     updateHealth(usertoken)
-                    healthlost = round(random.uniform(20 + (20 * int(userData["heroLevel"])), 50 + (20 * int(userData["heroLevel"])) - (.1 * int(userData["heroArmor"]))))
+                    healthlost = round(random.uniform(30 + (10 * int(userData["heroLevel"])), 40 + (10 * int(userData["heroLevel"]))) - (.25 * int(userData["heroArmor"])))
                     newHealth = int(userData["heroCurrentHealth"]) - int(healthlost)
                     if int(newHealth) <= int(0):
                         failedAttempt(usertoken)
