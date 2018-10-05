@@ -577,7 +577,7 @@ async def on_message(message):
                         gold = goldGained(1,3,usertoken)
                         updateCharacter("EXP", str((int(userData["heroEXP"]) + 1)), usertoken)
                         updateCharacter("heroCurrentHealth", str(newHealth), usertoken)
-                        msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\nYou gained 1 EXP and earned " + str(gold) + " gold.\n Now standing at " + str(newHealth) + "health remaining, would you like to train or rest up?"
+                        msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\nYou gained 1 EXP and earned " + str(gold) + " gold.\nNow standing at " + str(newHealth) + " health remaining, would you like to train or rest up?"
                         additive = levelUp(usertoken)
                         if additive != None:
                             msg = msg + "\n" + additive
