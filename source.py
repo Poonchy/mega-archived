@@ -11,6 +11,7 @@ import datetime
 import random
 from random import randint
 import math
+import sys
 
 TOKEN = app_id = os.environ['TOKEN']
 
@@ -19,56 +20,330 @@ client = discord.Client()
 @client.event
 async def on_message(message):
     conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
+    cursor = conn.cursor()
+    userData, usertoken, itemData = {}, '{0.author.mention}'.format(message), {}    
+    duelData = {}
+    #Functions to retrieve data
+    def findUserData(userID):
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + userID + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        tempdata = []
+        for row in query:
+            for col in row:
+                tempdata.append("%s" % col)
+        userData["heroName"] = tempdata[1]
+        userData["heroRace"] = tempdata[2]
+        userData["heroClass"] = tempdata[3]
+        userData["heroHelmet"] = tempdata[4]
+        userData["heroShoulder"] = tempdata[5]
+        userData["heroChest"] = tempdata[6]
+        userData["heroGloves"] = tempdata[7]
+        userData["heroBelt"] = tempdata[8]
+        userData["heroLegs"] = tempdata[9]
+        userData["heroFeet"] = tempdata[10]
+        userData["heroMH"] = tempdata[11]
+        userData["heroOH"] = tempdata[12]
+        userData["heroInventory"] = tempdata[13]
+        userData["heroCurrentHealth"] = tempdata[14]
+        userData["heroMaximumHealth"] = tempdata[15]
+        userData["heroStam"] = tempdata[16]
+        userData["heroArmor"] = tempdata[17]
+        userData["heroInt"] = tempdata[18]
+        userData["heroStr"] = tempdata[19]
+        userData["heroAgi"] = tempdata[20]
+        userData["heroCrit"] = tempdata[21]
+        userData["heroEXP"] = tempdata[22]
+        userData["heroLevel"] = tempdata[23]
+        userData["heroGold"] = tempdata[24]
+        userData["heroUpdateTimer"] = tempdata[25]
+        userData["carryOverTime"] = tempdata[26]
+        userData["heroDamage"] = tempdata[27]
+        userData["heroDMLockout"] = tempdata[28]
+        userData["heroRunning"] = tempdata[29]
+    def findItemData(itemID):
+        if len(itemID) <= 3:
+            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+        else:
+            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemName = '" + itemID + "';")
+        conn.commit()
+        query = cursor.fetchall()
+        tempdata = []
+        for row in query:
+            for col in row:
+                tempdata.append("%s" % col)
+        itemData["itemID"] = tempdata[0]
+        itemData["itemName"] = tempdata[1]
+        itemData["itemDamage"] = tempdata[2]
+        itemData["itemStam"] = tempdata[3]
+        itemData["itemStr"] = tempdata[4]
+        itemData["itemInt"] = tempdata[5]
+        itemData["itemAgi"] = tempdata[6]
+        itemData["itemCrit"] = tempdata[7]
+        itemData["itemArmor"] = tempdata[8]
+        itemData["itemSlot"] = tempdata[9]
+    def pullUpInventory(userID):
+        findUserData(userID)
+        parseItems = userData["heroInventory"].split()
+        outMsg = userID + "'s items:```"
+        for i in parseItems:
+            print (i)
+            findItemData(i)
+            if len(itemData["itemName"]) > 0:
+                outMsg += itemData["itemName"]
+            if int(itemData["itemDamage"]) > 0:
+                outMsg += "\nDamage: " + itemData["itemDamage"]
+            if int(itemData["itemArmor"]) > 0:
+                outMsg += "\nArmor: " + itemData["itemArmor"]
+            if int(itemData["itemStam"]) > 0:
+                outMsg += "\nStamina: " + itemData["itemStam"]
+            if int(itemData["itemStr"]) > 0:
+                outMsg += "\nStrength: " + itemData["itemStr"]
+            if int(itemData["itemInt"]) > 0:
+                outMsg += "\nIntellect: " + itemData["itemInt"]
+            if int(itemData["itemAgi"]) > 0:
+                outMsg += "\nAgility: " + itemData["itemAgi"]
+            if int(itemData["itemCrit"]) > 0:
+                outMsg += "\nCritical Hit Chance: " + itemData["itemCrit"]
+            outMsg += "\n\n"
+            itemData.clear()
+        outMsg += "```"
+        return outMsg
+    def inspectEquipment(userID):
+        findUserData(userID)
+        parseItems = [userData["heroHelmet"],userData["heroShoulder"],userData["heroChest"],userData["heroGloves"],userData["heroBelt"],userData["heroLegs"],userData["heroFeet"],userData["heroMH"],userData["heroOH"]]
+        outMsg = userID + "'s equipment:```"
+        x = 0
+        for i in parseItems:
+            if i != "0":
+                findItemData(i)
+                if len(itemData["itemName"]) > 0:
+                    outMsg += "\n" + itemData["itemName"]
+                if int(itemData["itemDamage"]) > 0:
+                    outMsg += "\nDamage: " + itemData["itemDamage"]
+                if int(itemData["itemArmor"]) > 0:
+                    outMsg += "\nArmor: " + itemData["itemArmor"]
+                if int(itemData["itemStam"]) > 0:
+                    outMsg += "\nStamina: " + itemData["itemStam"]
+                if int(itemData["itemStr"]) > 0:
+                    outMsg += "\nStrength: " + itemData["itemStr"]
+                if int(itemData["itemInt"]) > 0:
+                    outMsg += "\nIntellect: " + itemData["itemInt"]
+                if int(itemData["itemAgi"]) > 0:
+                    outMsg += "\nAgility: " + itemData["itemAgi"]
+                if int(itemData["itemCrit"]) > 0:
+                    outMsg += "\nCritical Hit Chance: " + itemData["itemCrit"]
+            else:
+                if x == 0:
+                    outMsg += "\nNo helmet equipped."
+                elif x == 1:
+                    outMsg += "\nNo shoulders equipped."
+                elif x == 2:
+                    outMsg += "\nNo chest equipped."
+                elif x == 3:
+                    outMsg += "\nNo gloves equipped."
+                elif x == 4:
+                    outMsg += "\nNo belt equipped."
+                elif x == 5:
+                    outMsg += "\nNo legs equipped."
+                elif x == 6:
+                    outMsg += "\nNo feet equipped."
+                elif x == 7:
+                    outMsg += "\nNo main hand equipped."
+                elif x == 8:
+                    outMsg += "\nNo offhand equipped."
+            outMsg += "\n"
+            itemData.clear()
+            x += 1
+        outMsg += "```"
+        return outMsg
+    def findDuelData(userID, whom):
+        try:
+            cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = '" + userID + "';")
+            conn.commit()
+            query = cursor.fetchall()
+            tempdata = []
+            for row in query:
+                for col in row:
+                    tempdata.append("%s" % col)
+            duelData["duelInit"] = tempdata[0]
+            duelData["duelRecip"] = tempdata[1]
+            return True
+        except Exception as e:
+            print(e)
+            print("Couldn't find person")
+            return None
+
+    #Functions for string manipulation
+    def subStringAfter(keyword):
+        regexp = re.compile(keyword + " (.*)$")
+        name = regexp.search(message.content).group(1)
+        name = " ".join(name.split()).title()
+        return name
+    def filterSpecialChars(string):
+        for k in string.split("\n"):
+            string = re.sub(r"[^a-zA-Z0-9]+", '', k)
+        return string
+    
+    #Functions to update user data
+    def updateCharacter(where, value, userID):
+        cursor.execute("UPDATE AzerothHeroes SET " + where + " = '" + value + "' WHERE userID = '" + userID + "';")
+        conn.commit()
+    def updateHealth(userID):
+        findUserData(userID)
+        timeNow = calendar.timegm(time.gmtime())
+        heroCurrentHealth = userData["heroCurrentHealth"]
+        heroMaximumHealth = userData["heroMaximumHealth"]
+        carryOverTime = userData["carryOverTime"]
+        heroUpdateTimer = userData["heroUpdateTimer"]
+        if int(heroCurrentHealth) < int(heroMaximumHealth):
+            timerUsed = 3600 / (int(heroMaximumHealth) * .15)
+            timeSinceLast = timeNow - int(heroUpdateTimer)
+            healthToRegen = math.floor(timeSinceLast/timerUsed)
+            remainingTime = int(timeSinceLast) % timerUsed
+            carryOverTime = float(carryOverTime) + int(remainingTime)
+            while float(carryOverTime) >= timerUsed:
+                carryOverTime = float(carryOverTime) - timerUsed
+                healthToRegen += 1
+            heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
+            if int(heroCurrentHealth) >= int(heroMaximumHealth):
+                heroCurrentHealth = int(heroMaximumHealth)
+                carryOverTime = 0
+        elif int(heroCurrentHealth) == int(heroMaximumHealth):
+            carryOverTime = 0
+        updateCharacter("heroCurrentHealth",str(heroCurrentHealth),userID)
+        updateCharacter("timeUpdated",str(timeNow),userID)
+        updateCharacter("carryOverSeconds", str(carryOverTime), userID)
+    def unequipGear(userID, itemID):
+        findItemData(itemID)
+        updateCharacter(itemData["itemSlot"], str(0), userID)
+        updateCharacter("heroDamage", str(int(userData["heroDamage"]) - int(itemData["itemDamage"])), userID)
+        updateCharacter("heroStamina", str(int(userData["heroStam"]) - int(itemData["itemStam"])), userID)
+        updateCharacter("heroStr", str(int(userData["heroStr"]) - int(itemData["itemStr"])), userID)
+        updateCharacter("heroAgi", str(int(userData["heroAgi"]) - int(itemData["itemAgi"])), userID)
+        updateCharacter("heroInt", str(int(userData["heroInt"]) - int(itemData["itemInt"])), userID)
+        updateCharacter("heroCrit", str(int(userData["heroCrit"]) - int(itemData["itemCrit"])), userID)
+        updateCharacter("heroArmor", str(int(userData["heroArmor"]) - int(itemData["itemArmor"])), userID)
+        updateCharacter("heroMaximumHealth", str(int(userData["heroMaximumHealth"]) - (int(itemData["itemStam"]) * 10)), userID)
+        updateCharacter("heroCurrentHealth", str(int(userData["heroCurrentHealth"]) - (int(itemData["itemStam"]) * 10)), userID)
+    def equipGear(userID, itemID, **kwargs):
+        unequip = kwargs.get('unequip', None)
+        damageChange, armorChange, stamChange, strChange, intChange, agiChange, critChange, heroMHChange, heroCHChange = 0,0,0,0,0,0,0,0,0
+        if unequip != None:
+            findItemData(unequip)
+            damageChange -= int(itemData["itemDamage"])
+            stamChange -= int(itemData["itemStam"])
+            strChange -= int(itemData["itemStr"])
+            intChange -= int(itemData["itemInt"])
+            agiChange -= int(itemData["itemAgi"])
+            critChange -= int(itemData["itemCrit"])
+            armorChange -= int(itemData["itemArmor"])
+            heroMHChange -= (int(itemData["itemStam"]) * 10)
+            heroCHChange -= (int(itemData["itemStam"]) * 10)
+        findItemData(itemID)
+        damageChange += int(itemData["itemDamage"])
+        stamChange += int(itemData["itemStam"])
+        strChange += int(itemData["itemStr"])
+        intChange += int(itemData["itemInt"])
+        agiChange += int(itemData["itemAgi"])
+        critChange += int(itemData["itemCrit"])
+        armorChange += int(itemData["itemArmor"])
+        heroMHChange += (int(itemData["itemStam"]) * 10)
+        heroCHChange += (int(itemData["itemStam"]) * 10)
+        updateCharacter(itemData["itemSlot"], str(itemData["itemID"]), userID)
+        updateCharacter("heroDamage", str(int(userData["heroDamage"]) + damageChange), userID)
+        updateCharacter("heroStamina", str(int(userData["heroStam"]) + stamChange), userID)
+        updateCharacter("heroStr", str(int(userData["heroStr"]) + strChange), userID)
+        updateCharacter("heroAgi", str(int(userData["heroAgi"]) + agiChange), userID)
+        updateCharacter("heroInt", str(int(userData["heroInt"]) + intChange), userID)
+        updateCharacter("heroCrit", str(int(userData["heroCrit"]) + critChange), userID)
+        updateCharacter("heroArmor", str(int(userData["heroArmor"]) + armorChange), userID)
+        updateCharacter("heroMaximumHealth", str(int(userData["heroMaximumHealth"]) + heroMHChange), userID)
+        updateCharacter("heroCurrentHealth", str(int(userData["heroCurrentHealth"]) + heroCHChange), userID)
+    def goldGained(min, max, userID):
+        findUserData(userID)
+        goldGained = round(random.uniform(min, max) * (((.3 * int(userData["heroDamage"])) + (.2 * int(userData["heroStr"])) + (.2 * int(userData["heroInt"])) + (.2 * int(userData["heroAgi"])))))
+        newGold = goldGained + int(userData['heroGold'])
+        updateCharacter("heroGold", str(newGold), userID)
+        return goldGained
+    def failedAttempt(userID):
+        updateCharacter("timeUpdated", str(calendar.timegm(time.gmtime())), userID)
+        updateCharacter("heroCurrentHealth", str(1), userID)
+    def levelUp(userID):
+        findUserData(userID)
+        expNeeded = math.floor((round((0.04*(int(userData["heroLevel"])**3))+(0.8*(int(userData["heroLevel"])**2))+(2*int(userData["heroLevel"])))))
+        if int(userData["heroEXP"])>=int(expNeeded):
+            try:
+                outMsg = "Ding! You've leveled up! You gained 2 Stamina, 1 Critical Strike Chance and 1 "
+                newLevel= int(userData["heroLevel"]) + 1
+                newMH = int(userData["heroMaximumHealth"]) + 20
+                newCR = int(userData["heroCurrentHealth"]) + 20
+                newStam = int(userData["heroStam"]) + 2
+                newCrit = int(userData["heroCrit"]) + 1
+            except Exception as e:
+                print(e)
+                print("Bug between here!")
+            if userData["heroClass"] == "warrior":
+                newStr = int(userData["heroStr"]) + 1
+                outMsg += "Strength!```"
+                updateCharacter("heroStr", str(newStr), userID)
+            elif userData["heroClass"] == "mage":
+                newInt = int(userData["heroInt"]) + 1
+                outMsg += "Intellect!```"
+                updateCharacter("heroInt", str(newInt), userID)
+            elif userData["heroClass"] == "rogue":
+                newAgi = int(userData["heroAgi"]) + 1
+                outMsg += "Agility!```"
+                updateCharacter("heroAgi", str(newAgi), userID)
+            updateCharacter("level", str(newLevel), userID)
+            updateCharacter("heroMaximumHealth", str(newMH), userID)
+            updateCharacter("heroCurrentHealth", str(newCR), userID)
+            updateCharacter("heroStamina", str(newStam), userID)
+            updateCharacter("heroCrit", str(newCrit), userID)
+            return outMsg
+        else:
+            return None
+
+    #Functions to update duel data
+    def updateDuelData(where, value, userID):
+        cursor.execute("UPDATE AzerothHeroesDuels SET " + where + " = " + value + " WHERE userID = '" + userID + "';")
+        conn.commit()
+    def insertIntoDuelData(duelInit, duelRecip):
+        cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
+        conn.commit()
+    def deleteFromDuelData(where):
+        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + where + "';")
+        conn.commit()
+
+    #Functions for loops
+    def isRunning(userID, ifR):
+        stillRunning = ifR
+        updateCharacter("heroRunning", ifR, userID)
+
     usermessage = message.content.upper() 
     if message.author == client.user:
         return
     if usermessage.startswith('MEGA HELP'):
-        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" in the discord chat you were in to get started, or "Mega Delete" to delete your hero.'.format(message)
-        await client.send_message(message.author, msg)
+        await client.send_message(message.author, 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message))
     if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
-        msg = 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message)
-        await client.send_message(message.channel, msg)
+        await client.send_message(message.channel, 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message))
     if usermessage.startswith('MEGA CREATE HERO'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        if not cursor.rowcount:
-            await client.send_message(message.channel, "You can create a character!\nSimply respond with (Mega create my orc/human warrior/mage/rogue named XXX).")
-        else:
+        try:
+            findUserData(usertoken)
             await client.send_message(message.channel, "You already have a character! Type in, 'Mega Hero' to view them!")
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, "You can create a character!\nSimply respond with (Mega create my orc/human warrior/mage/rogue named XXX).")
     if usermessage.startswith('MEGA CREATE MY'):
-        #Checks if user already has a character
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        timeNow = calendar.timegm(time.gmtime())
-        if not cursor.rowcount:
+        try:
+            findUserData(usertoken)
+            await client.send_message(message.channel, "You already have a character! Say, 'Mega Hero' to view them!")
+        except Exception as e: 
+            print(e)
             if 'NAMED' in usermessage and ('warrior' in message.content or 'mage' in message.content or 'rogue' in message.content) and ('orc' in message.content or 'human' in message.content) and len(message.content.split()) >= 7:
-                regexp = re.compile("named (.*)$")
-                name = regexp.search(message.content).group(1)
-                name = " ".join(name.split()).title()
-                for k in name.split("\n"):
-                    name = re.sub(r"[^a-zA-Z0-9]+", '', k)
+                name = filterSpecialChars(subStringAfter("named"))
                 if len(name) < 12:
-                    heroClass = ""
-                    heroRace = ""
-                    heroChest = ""
-                    heroGloves = ""
-                    heroBelt = ""
-                    heroLegs = ""
-                    heroFeet = ""
-                    heroMH = ""
-                    heroOH = ""
-                    heroHealth = ""
-                    heroStam = ""
-                    heroArmor = ""
-                    heroInt = ""
-                    heroStr = ""
-                    heroAgi = ""
-                    heroCrit = ""
-                    heroDamage = ""
+                    userID, heroName, heroRace, heroClass, heroHelm, heroShoulders, heroChest, heroGloves, heroBelt, heroLegs, heroFeet, heroMH, heroOH, heroInventory, heroCurrentHealth, heroMaximumHealth, heroStam, heroArmor, heroInt, heroStr, heroAgi, heroCrit, EXP, level, heroGold, timeUpdated, carryOverSeconds, heroDamage, DMLockout, heroRunning = usertoken, name, "race", "class", "1", "2", "3", "4", "5", "6", "7", "8", "OH", "In", "heroC", "heroM", "stam", "armor", "int", "str", "agi", "crit", "0", "1", "0", calendar.timegm(time.gmtime()), "0", "dmg", "AAAAAAA", "no"
                     if 'warrior' in message.content and len(message.content.split()) >= 7:
                         heroClass = "warrior"
                         heroChest = "31"
@@ -78,7 +353,7 @@ async def on_message(message):
                         heroFeet = "71"
                         heroMH = "81"
                         heroOH = "0"
-                        heroHealth = "150"
+                        heroMaximumHealth, heroCurrentHealth = "150", "150"
                         heroStam = "10"
                         heroArmor = "15"
                         heroInt = "0"
@@ -86,6 +361,7 @@ async def on_message(message):
                         heroAgi = "0"
                         heroCrit = "5"
                         heroDamage = "5"
+                        heroInventory = heroChest + " " + heroGloves + " " + heroBelt + " " + heroLegs + " " + heroFeet + " " + heroMH
                     elif 'mage' in message.content and len(message.content.split()) >= 7:
                         heroClass = "mage"
                         heroChest = "32"
@@ -95,7 +371,7 @@ async def on_message(message):
                         heroFeet = "72"
                         heroMH = "82"
                         heroOH = "0"
-                        heroHealth = "100"
+                        heroMaximumHealth, heroCurrentHealth = "100", "100"
                         heroStam = "5"
                         heroArmor = "5"
                         heroInt = "15"
@@ -103,6 +379,7 @@ async def on_message(message):
                         heroAgi = "0"
                         heroCrit = "10"
                         heroDamage = "1"
+                        heroInventory = heroChest + " " + heroGloves + " " + heroBelt + " " + heroLegs + " " + heroFeet + " " + heroMH
                     elif 'rogue' in message.content and len(message.content.split()) >= 7:
                         heroClass = "rogue"
                         heroChest = "33"
@@ -112,7 +389,7 @@ async def on_message(message):
                         heroFeet = "73"
                         heroMH = "83"
                         heroOH = "91"
-                        heroHealth = "120"
+                        heroMaximumHealth, heroCurrentHealth = "120", "120"
                         heroStam = "7"
                         heroArmor = "10"
                         heroInt = "0"
@@ -120,6 +397,7 @@ async def on_message(message):
                         heroAgi = "14"
                         heroCrit = "20"
                         heroDamage = "4"
+                        heroInventory = heroChest + " " + heroGloves + " " + heroBelt + " " + heroLegs + " " + heroFeet + " " + heroMH + " " + heroOH
                     if 'orc' in message.content and len(message.content.split()) >= 7:
                         heroRace = "orc"
                         if 'warrior' in message.content:
@@ -130,96 +408,46 @@ async def on_message(message):
                             heroAgi = str(int(heroAgi) + 1)
                     elif 'human' in message.content and len(message.content.split()) >= 7:
                         heroRace = "human"
-                        heroHealth = str(int(heroHealth) + 10)
+                        heroCurrentHealth, heroMaximumHealth = str(int(heroMaximumHealth) + 10), str(int(heroMaximumHealth) + 10)
                         heroStam = str(int(heroStam) + 1)
-                    heroInventory = heroChest + " " + heroGloves + " " + heroBelt + " " + heroLegs + " " + heroFeet + " " + heroMH + " " + heroOH
-                    cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroRace, heroClass, heroHelm, heroShoulders, heroChest, heroGloves, heroBelt, heroLegs, heroFeet, heroMH, heroOH, heroInventory, heroCurrentHealth, heroMaximumHealth, heroStamina, heroArmor, heroInt, heroStr, heroAgi, heroCrit, EXP, level, heroGold, timeUpdated, carryOverSeconds, heroDamage) VALUES ('" + usertoken + "','" + name +"','" + heroRace + "','" + heroClass + "','0','0','" + heroChest + "','" + heroGloves +"','" + heroBelt + "','" + heroLegs + "','" + heroFeet + "','" + heroMH + "','" + heroOH + "','" + heroInventory + "','" + heroHealth + "','" + heroHealth + "','" + heroStam + "','" + heroArmor + "','" + heroInt + "','" + heroStr + "','" + heroAgi + "','" + heroCrit + "','0','1','0','" + str(timeNow) + "','0', '" + heroDamage + "');")
+                    heroHelm = "0"
+                    heroShoulders = "0"
+                    cursor.execute("INSERT INTO AzerothHeroes (userID, heroName, heroRace, heroClass, heroHelm, heroShoulders, heroChest, heroGloves, heroBelt, heroLegs, heroFeet, heroMH, heroOH, heroInventory, heroCurrentHealth, heroMaximumHealth, heroStamina, heroArmor, heroInt, heroStr, heroAgi, heroCrit, EXP, level, heroGold, timeUpdated, carryOverSeconds, heroDamage, DMLockout, heroRunning) VALUES ('" + userID + "','" + heroName +"','" + heroRace + "','" + heroClass + "','" + heroHelm + "','" + heroShoulders + "','" + heroChest + "','" + heroGloves +"','" + heroBelt + "','" + heroLegs + "','" + heroFeet + "','" + heroMH + "','" + heroOH + "','" + heroInventory + "','" + heroCurrentHealth + "','" + heroMaximumHealth + "','" + heroStam + "','" + heroArmor + "','" + heroInt + "','" + heroStr + "','" + heroAgi + "','" + heroCrit + "','" + EXP + "','" + level + "','" + heroGold + "','" + str(timeUpdated) + "','" + carryOverSeconds + "', '" + heroDamage + "', '" + DMLockout + "', '" + heroRunning + "');")
                     conn.commit()
                     await client.send_message(message.channel, "You chose a " + heroRace + " " + heroClass + " named " + name + "! To view your character type in, 'Mega Hero'.")
                 else:
                     await client.send_message(message.channel, "Your name was too long! A name cannot be longer than 12 characters.")
             else:
                 await client.send_message(message.channel, "Your response was formatted incorrectly. Make sure to include your race, class and name! An example:\nMega create my orc warrior named zugzug.")
-        else:
-            await client.send_message(message.channel, "You already have a character! Say, 'Mega Hero' to view them!")
     if usermessage.startswith('MEGA HERO'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            heroName = userdata[1]
-            heroRace = userdata[2]
-            heroClass = userdata[3]
-            heroOffSet = 0
-            if heroRace == "orc":
-                heroHelm = "orc" + str(userdata[4])
-                heroShoulder = "orc" + str(userdata[5])
-                heroChest = "orc" + str(userdata[6])
-                heroGloves = "orc" + str(userdata[7])
-                heroBelt = "orc" + str(userdata[8])
-                heroLegs = "orc" + str(userdata[9])
-                heroFeet = "orc" + str(userdata[10])
-                heroOH = "orc" + str(userdata[12])
-                heroOffSet = (110,180)
-            if heroRace == "human":
-                heroHelm = "human" + str(userdata[4])
-                heroShoulder = "human" + str(userdata[5])
-                heroChest = "human" + str(userdata[6])
-                heroGloves = "human" + str(userdata[7])
-                heroBelt = "human" + str(userdata[8])
-                heroLegs = "human" + str(userdata[9])
-                heroFeet = "human" + str(userdata[10])
-                heroOH = "human" + str(userdata[12])
-                heroOffSet = (110,180)
-            heroMH = userdata[11]
-            heroCurrentHealth = userdata[14]
-            heroMaximumHealth = userdata[15]
-            heroStam = userdata[16]
-            heroArmor = userdata[17]
-            heroInt = userdata[18]
-            heroStr = userdata[19]
-            heroAgi = userdata[20]
-            heroCrit = userdata[21]
-            heroEXP = userdata[22]
-            heroLevel = userdata[23]
-            heroGold = userdata[24]
-            heroUpdateTimer = userdata[25]
-            carryOverTime = userdata[26]
-            timeNow = calendar.timegm(time.gmtime())
-            if int(heroCurrentHealth) < int(heroMaximumHealth):
-                timerUsed = 3600 / (int(heroMaximumHealth) * .15)
-                timeSinceLast = timeNow - int(heroUpdateTimer)
-                healthToRegen = math.floor(timeSinceLast/timerUsed)
-                remainingTime = int(timeSinceLast) % timerUsed
-                carryOverTime = float(carryOverTime) + int(remainingTime)
-                while float(carryOverTime) >= timerUsed:
-                    carryOverTime = float(carryOverTime) - timerUsed
-                    healthToRegen += 1
-                heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
-                if int(heroCurrentHealth) >= int(heroMaximumHealth):
-                    heroCurrentHealth = int(heroMaximumHealth)
-                    carryOverTime = 0
-            elif int(heroCurrentHealth) == int(heroMaximumHealth):
-                carryOverTime = 0
-            cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
-            conn.commit()
+        if len(usermessage.split()) >= 3:
+            user = subStringAfter("hero")
+        else:
+            user = usertoken
+        try:
+            findUserData(user)
+            updateHealth(user)
+            dispHelm = userData['heroRace'] + userData['heroHelmet']
+            dispShoulder = userData['heroRace'] + userData['heroShoulder']
+            dispChest = userData['heroRace'] + userData['heroChest']
+            dispGloves = userData['heroRace'] + userData['heroGloves']
+            dispBelt = userData['heroRace'] + userData['heroBelt']
+            dispLegs = userData['heroRace'] + userData['heroLegs']
+            dispFeet = userData['heroRace'] + userData['heroFeet']
+            dispOH = userData['heroRace'] + userData['heroOH']
+            dispMH = userData['heroMH']
+            heroOffSet = (110,180)
             background = Image.open('Items/white.jpg')
-            hero = Image.open("Items/" + str(heroRace) + '.png')
-            helmet = Image.open("Items/" + str(heroHelm) + '.png')
-            shoulders = Image.open("Items/" + str(heroShoulder) + '.png')
-            chest = Image.open("Items/" + str(heroChest) + '.png')
-            gloves = Image.open("Items/" + str(heroGloves) + '.png')
-            belt = Image.open("Items/" + str(heroBelt) + '.png')
-            legs = Image.open("Items/" + str(heroLegs) + '.png')
-            feet = Image.open("Items/" + str(heroFeet) + '.png')
-            mainhand = Image.open("Items/" + str(heroMH) + '.png')
-            offhand = Image.open("Items/" + str(heroOH) + '.png')
+            hero = Image.open("Items/" + str(userData['heroRace']) + '.png')
+            helmet = Image.open("Items/" + str(dispHelm) + '.png')
+            shoulders = Image.open("Items/" + str(dispShoulder) + '.png')
+            chest = Image.open("Items/" + str(dispChest) + '.png')
+            gloves = Image.open("Items/" + str(dispGloves) + '.png')
+            belt = Image.open("Items/" + str(dispBelt) + '.png')
+            legs = Image.open("Items/" + str(dispLegs) + '.png')
+            feet = Image.open("Items/" + str(dispFeet) + '.png')
+            mainhand = Image.open("Items/" + str(dispMH) + '.png')
+            offhand = Image.open("Items/" + str(dispOH) + '.png')
             healthbar = Image.open("Items/health.png")
             healthbarFrame = Image.open("Items/healthBarFrame.png")
             goldCoin = Image.open("Items/goldcoin.png")
@@ -238,878 +466,208 @@ async def on_message(message):
             canvas.paste(offhand, heroOffSet, mask=offhand)
             font = ImageFont.truetype("helvetica.ttf", 20)
             d = ImageDraw.Draw(canvas)
-            d.text((10,10), "Hero: " + heroName, fill=(0,0,0), font = font)
-            d.text((10,30), "Specialization: " + heroRace.title() + " " + heroClass.title() + ".", fill=(0,0,0), font = font)
-            d.text((10,50), "Health: " + str(heroCurrentHealth) + " / " + str(heroMaximumHealth), fill=(0,0,0), font = font)
-            d.text((30,100), heroGold + " gold", fill=(0,0,0), font = font)
-            remainingHealth = int((int(heroCurrentHealth) / int(heroMaximumHealth)) * 62)
+            d.text((10,10), "Hero: " + userData['heroName'] , fill=(0,0,0), font = font)
+            d.text((10,30), "Specialization: " + userData['heroRace'] .title() + " " + userData['heroClass'].title() + ".", fill=(0,0,0), font = font)
+            d.text((10,50), "Health: " + str(userData['heroCurrentHealth']) + " / " + str(userData['heroMaximumHealth']), fill=(0,0,0), font = font)
+            d.text((30,100), userData['heroGold'] + " gold", fill=(0,0,0), font = font)
+            remainingHealth = int((int(userData['heroCurrentHealth']) / int(userData['heroMaximumHealth'])) * 62)
             ActualHealthBar = healthbar.crop((0,0,remainingHealth,22))
             canvas.paste(ActualHealthBar, (10, 70), mask=ActualHealthBar)
             canvas.paste(healthbarFrame, (10, 70), mask=healthbarFrame)
             canvas.paste(goldCoin, (10, 100), mask=goldCoin)
-            d.text((350,70), "Level: " + heroLevel, fill=(0,0,0), font = font)
-            d.text((350,90), "EXP: " + heroEXP, fill=(0,0,0), font = font)
-            d.text((350,50), "Armor: " + heroArmor, fill=(0,0,0), font = font)
-            d.text((350,30), "Stamina: " + heroStam, fill=(0,0,0), font = font)
-            if heroClass == "warrior":
-                d.text((350,10), "Strength: " + heroStr, fill=(0,0,0), font = font)
-            if heroClass == "mage":
-                d.text((350,10), "Intellect: " + heroInt, fill=(0,0,0), font = font)
-            if heroClass == "rogue":
-                d.text((350,10), "Agility: " + heroAgi, fill=(0,0,0), font = font)
+            d.text((350,70), "Level: " + userData['heroLevel'], fill=(0,0,0), font = font)
+            d.text((350,90), "EXP: " + userData['heroEXP'], fill=(0,0,0), font = font)
+            d.text((350,50), "Armor: " + userData['heroArmor'], fill=(0,0,0), font = font)
+            d.text((350,30), "Stamina: " + userData['heroStam'], fill=(0,0,0), font = font)
+            if userData['heroClass'] == "warrior":
+                d.text((350,10), "Strength: " + userData['heroStr'], fill=(0,0,0), font = font)
+            if userData['heroClass']  == "mage":
+                d.text((350,10), "Intellect: " + userData['heroInt'], fill=(0,0,0), font = font)
+            if userData['heroClass']  == "rogue":
+                d.text((350,10), "Agility: " + userData['heroAgi'], fill=(0,0,0), font = font)
             canvas.save('hero.png', format="png")
             await client.send_file(message.channel, 'hero.png')
             os.remove("hero.png")
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
+        except Exception as e:
+            print(e)
+            if len(usermessage.split()) >= 3:
+                await client.send_message(message.channel, "Could not find the hero you were trying to inspect.")
+            else:
+                await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA INVENTORY'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            Inventory = userdata[13]
-            parseItems = Inventory.split()
-            output = []
-            msg = "Your items:\n\n```"
-            for i in parseItems:
-                currentItem = i
-                cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + str(currentItem) + "';")
-                conn.commit()
-                itemQuery = cursor.fetchall()
-                for rows in itemQuery:
-                    for cols in rows:
-                        output.append("%s" % cols)
-                        if len(output) >= 8:
-                            itemName = output[0]
-                            itemDamage = output[1]
-                            itemStam = output[2]
-                            itemStr = output[3]
-                            itemInt = output[4]
-                            itemAgi = output[5]
-                            itemCrit = output[6]
-                            itemArmor = output[7]
-                            if len(itemName) > 0:
-                                msg += itemName
-                            if int(itemDamage) > 0:
-                                msg += "\nDamage: " + itemDamage
-                            if int(itemArmor) > 0:
-                                msg += "\nArmor: " + itemArmor
-                            if int(itemStam) > 0:
-                                msg += "\nStamina: " + itemStam
-                            if int(itemStr) > 0:
-                                msg += "\nStrength: " + itemStr
-                            if int(itemInt) > 0:
-                                msg += "\nIntellect: " + itemInt
-                            if int(itemAgi) > 0:
-                                msg += "\nAgility: " + itemAgi
-                            if int(itemCrit) > 0:
-                                msg += "\nCritical Hit Chance: " + itemCrit
-                            msg += "\n\n"
-                            output.clear()
-            msg += "```"
-            await client.send_message(message.channel, msg)
+        if len(usermessage.split()) >= 3:
+            user = subStringAfter("inventory")
         else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            user = usertoken
+        try:
+            msg = pullUpInventory(user)
             await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA UNEQUIP'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            if len(message.content.split()) >= 3:
-                regexp = re.compile("unequip (.*)$")
-                name = regexp.search(message.content).group(1)
-                name = " ".join(name.split()).title()
-                cursor.execute("SELECT itemID FROM AzerothHeroesItems WHERE itemName = '" + name + "';")
-                conn.commit()
-                if cursor.rowcount:
-                    itemID = ""
-                    itemSlot = ""
-                    output = []
-                    itemQuery = cursor.fetchall()
-                    for rows in itemQuery:
-                        for cols in rows:
-                            output.append("%s" % cols)
-                    itemID = output[0]
-                    if itemID[:1] == "1":
-                        itemSlot = "heroHelm"
-                    if itemID[:1] == "2":
-                        itemSlot = "heroShoulders"
-                    if itemID[:1] == "3":
-                        itemSlot = "heroChest"
-                    if itemID[:1] == "4":
-                        itemSlot = "heroGloves"
-                    if itemID[:1] == "5":
-                        itemSlot = "heroBelt"
-                    if itemID[:1] == "6":
-                        itemSlot = "heroLegs"
-                    if itemID[:1] == "7":
-                        itemSlot = "heroFeet"
-                    if itemID[:1] == "8":
-                        itemSlot = "heroMH"
-                    if itemID[:1] == "9":
-                        itemSlot = "heroOH"
-                    execution = "SELECT " + itemSlot + " FROM AzerothHeroes WHERE userID = '" + usertoken + "';"
-                    cursor.execute(execution)
-                    conn.commit()
-                    if cursor.rowcount:
-                        secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(0) + " WHERE userID = '" + usertoken + "';"
-                        cursor.execute(secondExecution)
-                        conn.commit()
-                        heroMaximumHealth = int(userdata[15])
-                        heroStam = int(userdata[16])
-                        heroArmor = int(userdata[17])
-                        heroInt = int(userdata[18])
-                        heroStr = int(userdata[19])
-                        heroAgi = int(userdata[20])
-                        heroCrit = int(userdata[21])
-                        heroLevel = int(userdata[23])
-                        cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
-                        conn.commit()
-                        statQuery = cursor.fetchall()
-                        for rows in statQuery:
-                            for cols in rows:
-                                output.append("%s" % cols)
-                                if len(output) >= 9:
-                                    print (output)
-                                    itemName = output[1]
-                                    itemDamage = output[2]
-                                    itemStam = output[3]
-                                    itemStr = output[4]
-                                    itemInt = output[5]
-                                    itemAgi = output[6]
-                                    itemCrit = output[7]
-                                    itemArmor = output[8]
-                                    heroArmor -= int(itemArmor)
-                                    heroStam -= int(itemStam)
-                                    heroStr -= int(itemStr)
-                                    heroInt -= int(itemInt)
-                                    heroAgi -= int(itemAgi)
-                                    heroCrit -= int(itemCrit)
-                                    heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
-                                    output.clear()
-                        cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
-                        conn.commit()
-                        await client.send_message(message.channel, "Successfully unequiped " + name)
-                    else:
-                        await client.send_message(message.channel, "You're not wearing that item.")
-                else:
-                    await client.send_message(message.channel, "We couldn't find your item. Please make sure you typed the full name correctly.")
+        except Exception as e:
+            print(e)
+            if len(usermessage.split()) >= 3:
+                await client.send_message(message.channel, "Could not find the hero you were trying to inspect.")
             else:
-                parseItems = [userdata[4],userdata[5],userdata[6],userdata[7],userdata[8],userdata[9],userdata[10],userdata[11],userdata[12]]
-                output = []
-                msg = "What would you like to unequip? Your current equipment:\n\n"
-                for i in parseItems:
-                    currentItem = i
-                    print (currentItem)
-                    cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + currentItem + "';")
-                    conn.commit()
-                    itemQuery = cursor.fetchall()
-                    for rows in itemQuery:
-                        for cols in rows:
-                            output.append("%s" % cols)
-                            if len(output) > 7:
-                                itemName = output[0]
-                                itemDamage = output[1]
-                                itemStam = output[2]
-                                itemStr = output[3]
-                                itemInt = output[4]
-                                itemAgi = output[5]
-                                itemCrit = output[6]
-                                itemArmor = output[7]
-                                if len(itemName) > 0:
-                                    msg += itemName
-                                if int(itemDamage) > 0:
-                                    msg += "\nDamage: " + itemDamage
-                                if int(itemArmor) > 0:
-                                    msg += "\nArmor: " + itemArmor
-                                if int(itemStam) > 0:
-                                    msg += "\nStamina: " + itemStam
-                                if int(itemStr) > 0:
-                                    msg += "\nStrength: " + itemStr
-                                if int(itemInt) > 0:
-                                    msg += "\nIntellect: " + itemInt
-                                if int(itemAgi) > 0:
-                                    msg += "\nAgility: " + itemAgi
-                                if int(itemCrit) > 0:
-                                    msg += "\nCritical Hit Chance: " + itemCrit
-                                msg += "\n\n"
-                                output.clear()
-                await client.send_message(message.channel, msg)
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
+                await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA EQUIP'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            Inventory = userdata[13]
+        try:
+            findUserData(usertoken)
+            if len(usermessage.split()) >= 3:
+                name = subStringAfter("equip")
+                try:
+                    findItemData(name)
+                    if userData[itemData["itemSlot"]] != "0":
+                        equipGear(usertoken, name, unequip = userData[itemData["itemSlot"]])
+                        findItemData(userData[itemData["itemSlot"]])
+                        await client.send_message(message.channel, usertoken + "```You succesfully replaced [" + itemData["itemName"] + "] with [" + name + "]```")
+                    else:
+                        equipGear(usertoken, name)
+                        await client.send_message(message.channel, usertoken + "```You succesfully equipped [" + name + "]```")
+                except Exception as e:
+                    print(e)
+                    await client.send_message(message.channel, "Couldn\'t find the item you were looking for. Type \"Mega Inventory\" to see your items.")
+            else:
+                await client.send_message(message.channel, "What would you like to equip? Type \"Mega Inventory\" to see your items.")
+        except Exception as e:
+            print (e)
+            await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
+    if usermessage.startswith('MEGA UNEQUIP'):
+        try:
+            findUserData(usertoken)
             if len(message.content.split()) >= 3:
-                regexp = re.compile("equip (.*)$")
-                name = regexp.search(message.content).group(1)
-                name = " ".join(name.split()).title()
-                cursor.execute("SELECT itemID FROM AzerothHeroesItems WHERE itemName = '" + name + "';")
-                conn.commit()
-                if cursor.rowcount:
-                    itemID = ""
-                    itemSlot = ""
-                    output = []
-                    itemQuery = cursor.fetchall()
-                    for rows in itemQuery:
-                        for cols in rows:
-                            output.append("%s" % cols)
-                    itemID = output[0]
-                    if itemID[:1] == "1":
-                        itemSlot = "heroHelm"
-                    if itemID[:1] == "2":
-                        itemSlot = "heroShoulders"
-                    if itemID[:1] == "3":
-                        itemSlot = "heroChest"
-                    if itemID[:1] == "4":
-                        itemSlot = "heroGloves"
-                    if itemID[:1] == "5":
-                        itemSlot = "heroBelt"
-                    if itemID[:1] == "6":
-                        itemSlot = "heroLegs"
-                    if itemID[:1] == "7":
-                        itemSlot = "heroFeet"
-                    if itemID[:1] == "8":
-                        itemSlot = "heroMH"
-                    if itemID[:1] == "9":
-                        itemSlot = "heroOH"
-                    if itemID not in Inventory:
-                        await client.send_message(message.channel, "You do not own that item.")
-                    else:
-                        cursor.execute("SELECT " + itemSlot + " FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-                        conn.commit()
-                        checkQuery = cursor.fetchall()
-                        itemsList = []
-                        for rows in checkQuery:
-                            for cols in rows:
-                                itemsList.append("%s" % cols)
-                        itemSlotCheck = itemsList[0]
-                        print(itemSlotCheck)
-                        if int(itemSlotCheck) == 0:
-                            secondExecution = "UPDATE AzerothHeroes SET " + itemSlot + " = " + str(itemID) + " WHERE userID = '" + usertoken + "';"
-                            cursor.execute(secondExecution)
-                            conn.commit()
-                            heroMaximumHealth = int(userdata[15])
-                            heroStam = int(userdata[16])
-                            heroArmor = int(userdata[17])
-                            heroInt = int(userdata[18])
-                            heroStr = int(userdata[19])
-                            heroAgi = int(userdata[20])
-                            heroCrit = int(userdata[21])
-                            heroLevel = int(userdata[23])
-                            cursor.execute("SELECT itemName, itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
-                            conn.commit()
-                            statQuery = cursor.fetchall()
-                            for rows in statQuery:
-                                for cols in rows:
-                                    output.append("%s" % cols)
-                                    if len(output) >= 9:
-                                        print (output)
-                                        itemName = output[1]
-                                        itemDamage = output[2]
-                                        itemStam = output[3]
-                                        itemStr = output[4]
-                                        itemInt = output[5]
-                                        itemAgi = output[6]
-                                        itemCrit = output[7]
-                                        itemArmor = output[8]
-                                        heroArmor += int(itemArmor)
-                                        heroStam += int(itemStam)
-                                        heroStr += int(itemStr)
-                                        heroInt += int(itemInt)
-                                        heroAgi += int(itemAgi)
-                                        heroCrit += int(itemCrit)
-                                        heroMaximumHealth = 30 + (20 * heroLevel) + (10 * heroStam)
-                                        output.clear()
-                            cursor.execute("UPDATE AzerothHeroes SET heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroStamina = '" + str(heroStam) + "', heroArmor = '" + str(heroArmor) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroAgi = '" + str(heroAgi) + "', heroCrit = '" + str(heroCrit) + "' WHERE userID = '" + usertoken + "';")
-                            conn.commit()
-                            await client.send_message(message.channel, "Successfully equiped " + name)
-                        else:
-                            await client.send_message(message.channel, "You have an item equipped in that slot. Unequip it first.")
-                else:
-                    await client.send_message(message.channel, "We couldn't find your item. Please make sure you typed the full name correctly.")
+                try:
+                    itemName = subStringAfter("unequip")
+                    unequipGear(usertoken, itemName)
+                    await client.send_message(message.channel, usertoken + "```You succesfully unequipped [" + itemName + "]```")
+                except Exception as e:
+                    print(e)
+                    await client.send_message(message.channel, "Couldn\'t find the item you were looking for. Type \"Mega Inventory\" to see your items.")
             else:
-                msg = "What would you like to equip? Type \"Mega Inventory\" to see your items."
-                await client.send_message(message.channel, msg)
+                await client.send_message(message.channel, "What would you like to unequip? Type \"Mega Inventory\" to see your items.")
+        except Exception as e:
+            print (e)
+            await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
+    if usermessage.startswith('MEGA INSPECT'):
+        if len(usermessage.split()) >= 3:
+            user = subStringAfter("inspect")
         else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
+            user = usertoken
+        try:
+            msg = inspectEquipment(user)
             await client.send_message(message.channel, msg)
+        except Exception as e:
+            print(e)
+            if len(usermessage.split()) >= 3:
+                await client.send_message(message.channel, "Could not find the hero you were trying to inspect.")
+            else:
+                await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA TRAIN'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            heroClass = userdata[3]
-            heroCurrentHealth = userdata[14]
-            heroMaximumHealth = userdata[15]
-            heroStam = userdata[16]
-            heroArmor = userdata[17]
-            heroInt = userdata[18]
-            heroStr = userdata[19]
-            heroAgi = userdata[20]
-            heroCrit = userdata[21]
-            heroEXP = userdata[22]
-            heroLevel = userdata[23]
-            heroGold = userdata[24]
-            heroUpdateTimer = userdata[25]
-            carryOverTime = userdata[26]
-            heroDamage = userdata[27]
-            timeNow = calendar.timegm(time.gmtime())
-            if int(heroCurrentHealth) < int(heroMaximumHealth):
-                timerUsed = 3600 / (int(heroMaximumHealth) * .15)
-                timeSinceLast = timeNow - int(heroUpdateTimer)
-                healthToRegen = math.floor(timeSinceLast/timerUsed)
-                remainingTime = int(timeSinceLast) % timerUsed
-                carryOverTime = float(carryOverTime) + int(remainingTime)
-                while float(carryOverTime) >= timerUsed:
-                    carryOverTime = float(carryOverTime) - timerUsed
-                    healthToRegen += 1
-                heroCurrentHealth = int(healthToRegen) + int(heroCurrentHealth)
-                if int(heroCurrentHealth) >= int(heroMaximumHealth):
-                    heroCurrentHealth = int(heroMaximumHealth)
-                    carryOverTime = 0
-            elif int(heroCurrentHealth) == int(heroMaximumHealth):
-                carryOverTime = 0
-            cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(heroCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(carryOverTime) + "' WHERE userID = '" + usertoken + "';")
-            conn.commit()
-            healthlost = round(random.uniform(20, 50) - (.1 * int(heroArmor)))
-            heroCurrentHealth = int(heroCurrentHealth) - int(healthlost)
-            if heroCurrentHealth <= 0:
-                cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(1) + "', timeUpdated = '" + str(timeNow) + "' WHERE userID = '" + usertoken + "';")
-                conn.commit()
-                msg = usertoken + ' suffered fatal damage and earned nothing. Rest up before training again!'.format(message)
-                await client.send_message(message.channel, msg)
+        try:
+            findUserData(usertoken)
+            updateHealth(usertoken)
+            if userData["heroRunning"] == "no":
+                stillRunning = "yes"
+                updateCharacter("heroRunning", "yes", usertoken)
+                while stillRunning == "yes":
+                    findUserData(usertoken)
+                    updateHealth(usertoken)
+                    healthlost = round(random.uniform(20 + (20 * int(userData["heroLevel"])), 50 + (20 * int(userData["heroLevel"])) - (.1 * int(userData["heroArmor"]))))
+                    newHealth = int(userData["heroCurrentHealth"]) - int(healthlost)
+                    if int(newHealth) <= int(0):
+                        failedAttempt(usertoken)
+                        await client.send_message(message.channel, usertoken + '```Try as you might, you were too weary and collapsed during training.\nRest up before training again!```')
+                        isRunning(usertoken, "no")
+                        break
+                    else:
+                        gold = goldGained(1,3,usertoken)
+                        updateCharacter("EXP", str((int(userData["heroEXP"]) + 1)), usertoken)
+                        updateCharacter("heroCurrentHealth", str(newHealth), usertoken)
+                        msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\nYou gained 1 EXP and earned " + str(gold) + " gold.\nWould you like to train or rest up?"
+                        additive = levelUp(usertoken)
+                        if additive != None:
+                            msg = msg + "\n" + additive
+                            additive = None
+                        else:
+                            msg += "```"
+                        reloop = await client.send_message(message.channel, msg)
+                        await client.add_reaction(reloop, '💤')
+                        await client.add_reaction(reloop, '⚔')
+                        res = await client.wait_for_reaction(['💤', '⚔'], user=message.author, message=reloop, timeout = 20)
+                        try:
+                            userReaction = '{0.reaction.emoji}'.format(res)
+                            if userReaction == "⚔":
+                                await client.delete_message(reloop)
+                                isRunning(usertoken, "yes")
+                            elif userReaction == "💤":
+                                isRunning(usertoken, "no")
+                                await client.send_message(message.channel, "```You chose to rest up and train another day.```")
+                                break
+                        except Exception as e:
+                            print(e)
+                            isRunning(usertoken, "no")
+                            await client.send_message(message.channel, "```After contemplating for awhile, you chose to rest up and train another day.```")
+                            break
+                        userReaction = ""
             else:
-                goldGained = round(random.uniform(1, 3) * (((.05 * int(heroDamage))+(.1 * int(heroStr))) + ((.05 * int(heroDamage)) +.2 * int(heroInt)) + ((.05 * int(heroDamage)) + .15 * int(heroAgi))))
-                heroGold = int(heroGold) + int(goldGained)
-                doubleEXP = randint(0, 100)
-                expEarned = 0
-                if doubleEXP < int(heroCrit):
-                    heroEXP = int(heroEXP) + 2
-                    expEarned = 2
-                else:
-                    heroEXP = int(heroEXP) + 1
-                    expEarned = 1
-                expNeeded = math.floor((round((0.04*(int(heroLevel)**3))+(0.8*(int(heroLevel)**2))+(2*int(heroLevel)))))
-                msg = usertoken + ' has succesfully completed training, earning ' + str(expEarned) + ' EXP, ' + str(goldGained) + ' gold and losing ' + str(healthlost) + ' health.'.format(message)
-                await client.send_message(message.channel, msg)
-                if int(heroEXP)>=int(expNeeded):
-                    heroLevel = int(heroLevel) + 1
-                    heroMaximumHealth = str(int(heroMaximumHealth) + 20)
-                    heroCurrentHealth = str(int(heroCurrentHealth) + 20)
-                    heroStam = int(heroStam) + 2
-                    heroCrit = int(heroCrit) + 1
-                    if heroClass == "warrior":
-                        heroStr = int(heroStr) + 1
-                    elif heroClass == "mage":
-                        heroInt = int(heroInt) + 1
-                    elif heroClass == "rogue":
-                        heroAgi = int(heroAgi) + 1
-                    msg = 'Ding! ' + usertoken + ' reached level ' + str(heroLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat! Type Mega Hero to view your stats.".format(message)
-                    await client.send_message(message.channel, msg)
-                cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(heroStam) + "', heroCrit = '" + str(heroCrit) + "', heroAgi = '" + str(heroAgi) + "', heroInt = '" + str(heroInt) + "', heroStr = '" + str(heroStr) + "', heroMaximumHealth = '" + str(heroMaximumHealth) + "', heroCurrentHealth = '" + str(heroCurrentHealth) + "', heroGold = '" + str(heroGold) + "', EXP = '" + str(heroEXP) + "', Level = '" + str(heroLevel) + "' WHERE userID = '" + usertoken + "';")
-                conn.commit()
-
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
+                await client.send_message(message.channel, usertoken + ", you're already training or running a dungeon!")
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA DUEL'):
-        duelInit = '{0.author.mention}'.format(message)
-        splitUp = message.content.split()
-        duelRecip = splitUp[2]
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelInit + "';")
-        conn.commit()
-        if cursor.rowcount:
-            duelInitData = []
-            query = cursor.fetchall()
-            for row in query:
-                for col in row:
-                    duelInitData.append("%s" % col)
-            duelInitCurrentHealth = duelInitData[14]
-            duelInitMaximumHealth = duelInitData[15]
-            if int(duelInitMaximumHealth) * .20 > int(duelInitCurrentHealth):
-                msg = duelInit + ", your health is too low to challenge someone to a duel! Rest up first.".format(message)
-                await client.send_message(message.channel, msg)
-            else:
-                cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
-                conn.commit()
-                if cursor.rowcount:
-                    if duelInit == duelRecip:
-                        msg = "You cannot duel yourself!"
-                        await client.send_message(message.channel, msg)
-                    else:
-                        cursor.execute("SELECT DuelRecip FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #Check if someone else challenged them
-                        conn.commit()
-                        if cursor.rowcount:
-                            cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelRecip = '" + duelInit + "';") #get the person who challenged them
-                            conn.commit()
-                            duelInits = []
-                            query = cursor.fetchall()
-                            duelBegan = False
-                            for row in query:
-                                for col in row:
-                                    duelInits.append("%s" % col)
-                                for i in duelInits:
-                                    if i == duelRecip:
-                                        duelBegan = True
-                                        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelRecip + "';")
-                                        conn.commit()
-                                        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + duelInit + "';")
-                                        conn.commit()
-                                        duelRecipData = []
-                                        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + duelRecip + "';")
-                                        conn.commit()
-                                        queryRecip = cursor.fetchall()
-                                        for row in queryRecip:
-                                            for col in row:
-                                                duelRecipData.append("%s" % col)
-                                        duelInitClass = duelInitData[3]
-                                        duelInitStam = duelInitData[16]
-                                        duelInitArmor = duelInitData[17]
-                                        duelInitInt = duelInitData[18]
-                                        duelInitStr = duelInitData[19]
-                                        duelInitAgi = duelInitData[20]
-                                        duelInitCrit = duelInitData[21]
-                                        duelInitEXP = duelInitData[22]
-                                        duelInitLevel = duelInitData[23]
-                                        duelInitGold = duelInitData[24]
-                                        duelInitUpdateTimer = duelInitData[25]
-                                        duelInitcarryOverTime = duelInitData[26]
-                                        duelInitDamage = duelInitData[27]
-                                        duelRecipClass = duelRecipData[3]
-                                        duelRecipCurrentHealth = duelRecipData[14]
-                                        duelRecipMaximumHealth = duelRecipData[15]
-                                        duelRecipStam = duelRecipData[16]
-                                        duelRecipArmor = duelRecipData[17]
-                                        duelRecipInt = duelRecipData[18]
-                                        duelRecipStr = duelRecipData[19]
-                                        duelRecipAgi = duelRecipData[20]
-                                        duelRecipCrit = duelRecipData[21]
-                                        duelRecipEXP = duelRecipData[22]
-                                        duelRecipLevel = duelRecipData[23]
-                                        duelRecipGold = duelRecipData[24]
-                                        duelRecipUpdateTimer = duelRecipData[25]
-                                        duelRecipcarryOverTime = duelRecipData[26]
-                                        duelRecipDamage = duelRecipData[27]
-                                        timeNow = calendar.timegm(time.gmtime())
-                                        if int(duelInitCurrentHealth) < int(duelInitMaximumHealth):
-                                            duelInitTimerUsed = 3600 / (int(duelInitMaximumHealth) * .15)
-                                            duelInittimeSinceLast = timeNow - int(duelInitUpdateTimer)
-                                            duelInithealthToRegen = math.floor(duelInittimeSinceLast/duelInitTimerUsed)
-                                            duelInitremainingTime = int(duelInittimeSinceLast) % duelInitTimerUsed
-                                            duelInitcarryOverTime = float(duelInitcarryOverTime) + int(duelInitremainingTime)
-                                            while float(duelInitcarryOverTime) >= duelInitTimerUsed:
-                                                duelInitcarryOverTime = float(duelInitcarryOverTime) - duelInitTimerUsed
-                                                duelInithealthToRegen += 1
-                                            duelInitCurrentHealth = int(duelInithealthToRegen) + int(duelInitCurrentHealth)
-                                            if int(duelInitCurrentHealth) >= int(duelInitMaximumHealth):
-                                                duelInitCurrentHealth = int(duelInitMaximumHealth)
-                                                duelInitcarryOverTime = 0
-                                        elif int(duelInitCurrentHealth) == int(duelInitMaximumHealth):
-                                            carryOverTime = 0
-                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelInitcarryOverTime) + "' WHERE userID = '" + duelInit + "';")
-                                        conn.commit()
-                                        if int(duelRecipCurrentHealth) < int(duelRecipMaximumHealth):
-                                            duelRecipTimerUsed = 3600 / (int(duelRecipMaximumHealth) * .15)
-                                            duelReciptimeSinceLast = timeNow - int(duelRecipUpdateTimer)
-                                            duelReciphealthToRegen = math.floor(duelReciptimeSinceLast/duelRecipTimerUsed)
-                                            duelRecipremainingTime = int(duelReciptimeSinceLast) % duelRecipTimerUsed
-                                            duelRecipcarryOverTime = float(duelRecipcarryOverTime) + int(duelRecipremainingTime)
-                                            while float(duelRecipcarryOverTime) >= duelRecipTimerUsed:
-                                                duelRecipcarryOverTime = float(duelRecipcarryOverTime) - duelRecipTimerUsed
-                                                duelReciphealthToRegen += 1
-                                            duelRecipCurrentHealth = int(duelReciphealthToRegen) + int(duelRecipCurrentHealth)
-                                            if int(duelRecipCurrentHealth) >= int(duelRecipMaximumHealth):
-                                                duelRecipCurrentHealth = int(duelRecipMaximumHealth)
-                                                duelRecipcarryOverTime = 0
-                                        elif int(duelRecipCurrentHealth) == int(duelRecipMaximumHealth):
-                                            carryOverTime = 0
-                                        cursor.execute("UPDATE AzerothHeroes SET heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', timeUpdated = '" + str(timeNow) + "', carryOverSeconds = '" + str(duelRecipcarryOverTime) + "' WHERE userID = '" + duelRecip + "';")
-                                        conn.commit()
-                                        duelInitCritRoll = randint(0, 100)
-                                        duelRecipCritRoll = randint(0, 100)
-                                        duelInitRoll = 0
-                                        duelRecipRoll = 0
-                                        while duelInitRoll == duelRecipRoll:
-                                            if duelInitCritRoll < int(duelInitCrit):
-                                                duelInitRoll = 1.2 * (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
-                                            else:
-                                                duelInitRoll = (.75 * int(duelInitLevel)) * ((1.6 * int(duelInitCurrentHealth)) + (.2 * int(duelInitStr)) + (.2 * int(duelInitInt)) + (.2 * int(duelInitAgi)) + (.1 * int(duelInitArmor)) + (.3 * (int(duelInitDamage)))) * random.uniform(1, 5)
-                                            if duelRecipCritRoll < int(duelRecipCrit):
-                                                duelRecipRoll = 1.2 * (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
-                                            else:
-                                                duelRecipRoll = (.75 * int(duelRecipLevel)) * ((1.6 * int(duelRecipCurrentHealth)) + (.2 * int(duelRecipStr)) + (.2 * int(duelRecipInt)) + (.2 * int(duelRecipAgi)) + (.1 * int(duelRecipArmor)) + (.3 * (int(duelRecipDamage)))) * random.uniform(1, 5)
-                                        if duelInitRoll > duelRecipRoll:
-                                            duelRecipDamageDone = ""
-                                            if duelRecipCritRoll < int(duelRecipCrit):
-                                                duelRecipDamageDone = round((1.5 * (1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
-                                            else:
-                                                duelRecipDamageDone = round(((1.0 * int(duelRecipLevel)) * ((.4 * int(duelRecipStr)) + (.4 * int(duelRecipInt)) + (.4 * int(duelRecipAgi)) + (.5 * (int(duelRecipDamage)))) * random.uniform(2, 6)))
-                                            duelInitCurrentHealth = int(duelInitCurrentHealth) - int(duelRecipDamageDone)
-                                            if int(duelInitCurrentHealth) < 2:
-                                                duelInitCurrentHealth = "2"
-                                            goldEarned = 0
-                                            expEarned = 0
-                                            if 0 < int(duelRecipGold) < 10:
-                                                goldEarned = 1
-                                                expEarned = 1
-                                            elif 10 <= int(duelRecipGold):
-                                                goldEarned = math.ceil(int(duelRecipGold) * .1) + 1
-                                                expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
-                                            else:
-                                                goldEarned = 0
-                                            if 0 < int(duelRecipEXP) <= 4:
-                                                expEarned = 1
-                                            elif 4 < int(duelRecipEXP):
-                                                expEarned = math.ceil(int(duelRecipEXP) * .1) + 1
-                                            else:
-                                                expEarned = 0 
-                                            duelInitEXP = int(duelInitEXP) + int(expEarned)
-                                            duelInitGold = int(duelInitGold) + int(goldEarned)
-                                            duelRecipEXP = int(duelRecipEXP) - int(expEarned)
-                                            duelRecipGold = int(duelRecipGold) - int(goldEarned)
-                                            duelInitEXPNeeded = math.floor((round((0.04*(int(duelInitLevel)**3))+(0.8*(int(duelInitLevel)**2))+(2*int(duelInitLevel)))))
-                                            duelRecipEXPNeeded = math.floor((round((0.04*((int(duelRecipLevel) - 1)**3))+(0.8*((int(duelRecipLevel) - 1)**2))+(2*int(duelRecipLevel) -1 ))))
-                                            msg = 'Duel completed!\n' + duelInit + ' has earned ' + str(expEarned) + ' EXP and ' + str(goldEarned) + ' gold and lost ' + str(duelRecipDamageDone) + ' health.'.format(message)
-                                            await client.send_message(message.channel, msg)
-                                            msg = duelRecip + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and all of their health. Rest up and train some more!'.format(message)
-                                            await client.send_message(message.channel, msg)
-                                            if int(duelInitEXP)>=int(duelInitEXPNeeded):
-                                                duelInitLevel = int(duelInitLevel) + 1
-                                                duelInitMaximumHealth = str(int(duelInitMaximumHealth) + 20)
-                                                duelInitCurrentHealth = str(int(duelInitCurrentHealth) + 20)
-                                                duelInitStam = int(duelInitStam) + 2
-                                                duelInitCrit = int(duelInitCrit) + 1
-                                                if duelInitClass == "warrior":
-                                                    duelInitStr = int(duelInitStr) + 1
-                                                elif duelInitClass == "mage":
-                                                    duelInitInt = int(duelInitInt) + 1
-                                                elif duelInitClass == "rogue":
-                                                    duelInitAgi = int(duelInitAgi) + 1
-                                                msg = duelInit + ' has leveled up! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                                await client.send_message(message.channel, msg)
-                                            if int(duelRecipEXP)<int(duelRecipEXPNeeded) and int(duelRecipLevel) > 1:
-                                                duelRecipLevel = int(duelRecipLevel) - 1
-                                                duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) - 20)
-                                                duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) - 20)
-                                                duelRecipStam = int(duelRecipStam) - 2
-                                                duelRecipCrit = int(duelRecipCrit) - 1
-                                                if duelRecipClass == "warrior":
-                                                    duelRecipStr = int(duelRecipStr) - 1
-                                                elif duelRecipClass == "mage":
-                                                    duelRecipInt = int(duelRecipInt) - 1
-                                                elif duelRecipClass == "rogue":
-                                                    duelRecipAgi = int(duelRecipAgi) - 1
-                                                msg = duelRecip + ' has lost a level! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                                await client.send_message(message.channel, msg)
-                                            duelRecipCurrentHealth = "1"
-                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
-                                            conn.commit()
-                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
-                                            conn.commit()
-                                        elif duelInitRoll < duelRecipRoll:
-                                            duelInitDamageDone = ""
-                                            if duelInitCritRoll < int(duelInitCrit):
-                                                duelInitDamageDone = round((1.5 * (1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
-                                            else:
-                                                duelInitDamageDone = round(((1.0 * int(duelInitLevel)) * ((.4 * int(duelInitStr)) + (.4 * int(duelInitInt)) + (.4 * int(duelInitAgi)) + (.5 * (int(duelInitDamage)))) * random.uniform(2, 6)))
-                                            duelRecipCurrentHealth = int(duelRecipCurrentHealth) - int(duelInitDamageDone)
-                                            if int(duelRecipCurrentHealth) < 2:
-                                                duelRecipCurrentHealth = "2"
-                                            goldEarned = 0
-                                            expEarned = 0
-                                            if 0 < int(duelInitGold) < 10:
-                                                goldEarned = 1
-                                                expEarned = 1
-                                            elif 10 <= int(duelInitGold):
-                                                goldEarned = math.ceil(int(duelInitGold) * .1) + 1
-                                                expEarned = math.ceil(int(duelInitEXP) * .1) + 1
-                                            else:
-                                                goldEarned = 0
-                                            if 0 < int(duelInitEXP) <= 4:
-                                                expEarned = 1
-                                            elif 4 < int(duelInitEXP):
-                                                expEarned = math.ceil(int(duelInitEXP) * .1) + 1
-                                            else:
-                                                expEarned = 0 
-                                            duelRecipEXP = int(duelRecipEXP) + int(expEarned)
-                                            duelRecipGold = int(duelRecipGold) + int(goldEarned)
-                                            duelInitEXP = int(duelInitEXP) - int(expEarned)
-                                            duelInitGold = int(duelInitGold) - int(goldEarned)
-                                            duelRecipEXPNeeded = math.floor((round((0.04*(int(duelRecipLevel)**3))+(0.8*(int(duelRecipLevel)**2))+(2*int(duelRecipLevel)))))
-                                            duelInitEXPNeeded = math.floor((round((0.04*((int(duelInitLevel) - 1)**3))+(0.8*((int(duelInitLevel) - 1)**2))+(2*(int(duelInitLevel) -1 )))))
-                                            msg = 'Duel completed!\n' + duelRecip + ' has earned ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost ' + str(duelInitDamageDone) + ' health.'.format(message)
-                                            await client.send_message(message.channel, msg)
-                                            msg = duelInit + ' has lost ' + str(expEarned) + ' EXP, ' + str(goldEarned) + ' gold and lost all of their health. Rest up and train some more!'.format(message)
-                                            await client.send_message(message.channel, msg)
-                                            if int(duelRecipEXP)>=int(duelRecipEXPNeeded):
-                                                duelRecipLevel = int(duelRecipLevel) + 1
-                                                duelRecipMaximumHealth = str(int(duelRecipMaximumHealth) + 20)
-                                                duelRecipCurrentHealth = str(int(duelRecipCurrentHealth) + 20)
-                                                duelRecipStam = int(duelRecipStam) + 2
-                                                duelRecipCrit = int(duelRecipCrit) + 1
-                                                if duelRecipClass == "warrior":
-                                                    duelRecipStr = int(duelRecipStr) + 1
-                                                elif duelRecipClass == "mage":
-                                                    duelRecipInt = int(duelRecipInt) + 1
-                                                elif duelRecipClass == "rogue":
-                                                    duelRecipAgi = int(duelRecipAgi) + 1
-                                                msg = duelRecip + ' has leveled up! ' + duelRecip + ' is now level ' + str(duelRecipLevel) + " and gained 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                                await client.send_message(message.channel, msg)
-                                            if int(duelInitEXP)<int(duelInitEXPNeeded) and int(duelInitLevel) > 1:
-                                                duelInitLevel = int(duelInitLevel) - 1
-                                                duelInitMaximumHealth = str(int(duelInitMaximumHealth) - 20)
-                                                duelInitCurrentHealth = str(int(duelInitCurrentHealth) - 20)
-                                                duelInitStam = int(duelInitStam) - 2
-                                                duelInitCrit = int(duelInitCrit) - 1
-                                                if duelInitClass == "warrior":
-                                                    duelInitStr = int(duelInitStr) - 1
-                                                elif duelInitClass == "mage":
-                                                    duelInitInt = int(duelInitInt) - 1
-                                                elif duelInitClass == "rogue":
-                                                    duelInitAgi = int(duelInitAgi) - 1
-                                                msg = duelInit + ' has lost a level! ' + duelInit + ' is now level ' + str(duelInitLevel) + " and lost 2 Stamina, 1 Critical Strike Chance and 1 Main Stat!".format(message)
-                                                await client.send_message(message.channel, msg)
-                                            duelInitCurrentHealth = "1"
-                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelRecipStam) + "', heroCrit = '" + str(duelRecipCrit) + "', heroAgi = '" + str(duelRecipAgi) + "', heroInt = '" + str(duelRecipInt) + "', heroStr = '" + str(duelRecipStr) + "', heroMaximumHealth = '" + str(duelRecipMaximumHealth) + "', heroCurrentHealth = '" + str(duelRecipCurrentHealth) + "', heroGold = '" + str(duelRecipGold) + "', EXP = '" + str(duelRecipEXP) + "', Level = '" + str(duelRecipLevel) + "' WHERE userID = '" + duelRecip + "';")
-                                            conn.commit()
-                                            cursor.execute("UPDATE AzerothHeroes SET heroStamina = '" + str(duelInitStam) + "', heroCrit = '" + str(duelInitCrit) + "', heroAgi = '" + str(duelInitAgi) + "', heroInt = '" + str(duelInitInt) + "', heroStr = '" + str(duelInitStr) + "', heroMaximumHealth = '" + str(duelInitMaximumHealth) + "', heroCurrentHealth = '" + str(duelInitCurrentHealth) + "', heroGold = '" + str(duelInitGold) + "', EXP = '" + str(duelInitEXP) + "', Level = '" + str(duelInitLevel) + "' WHERE userID = '" + duelInit + "';")
-                                            conn.commit()
-                                if duelBegan == False:
-                                    cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
-                                    conn.commit()
-                                    if cursor.rowcount:
-                                        cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
-                                        conn.commit()
-                                        msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                        await client.send_message(message.channel, msg)
-                                    else:
-                                        cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
-                                        conn.commit()
-                                        msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                        await client.send_message(message.channel, msg)
-                        else:
-                            cursor.execute("SELECT DuelInit FROM AzerothHeroesDuels WHERE DuelInit = '" + duelInit + "';") #Check if user has a duel request
-                            conn.commit()
-                            if cursor.rowcount:
-                                cursor.execute("UPDATE AzerothHeroesDuels SET duelRecip = '" + duelRecip + "' where duelInit = '" + duelInit + "';")
-                                conn.commit()
-                                msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                await client.send_message(message.channel, msg)
-                            else:
-                                cursor.execute("INSERT INTO AzerothHeroesDuels (DuelInit, DuelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
-                                conn.commit()
-                                msg = duelInit + " has challenged " + duelRecip + " to a duel! Challenge them back to duel.".format(message)
-                                await client.send_message(message.channel, msg)
-                else:
-                    msg = 'The user you challenged does not have a character.'.format(message)
-                    await client.send_message(message.channel, msg)
+        duelInit = usertoken
+        duelRecip = subStringAfter("duel")
+        if duelInit == duelRecip:
+            await client.send_message(message.channel, "You cannot duel yourself!")
         else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA SHOP'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-        heroClass = userdata[3]
-        cursor.execute("SELECT itemName, itemID, itemCost FROM AzerothHeroesShop WHERE itemClass = '" + heroClass + "' OR `itemClass` = 'all';")
-        conn.commit()
-        itemQuery = cursor.fetchall()
-        itemData = []
-        msg = "Items for sale:\n\n"
-        for row in itemQuery:
-            for col in row:
-                itemData.append("%s" % col)
-            itemName = itemData[0]
-            itemID = itemData[1]
-            itemCost = itemData[2]
-            cursor.execute("SELECT itemDamage, itemStam, itemStr, itemInt, itemAgi, itemCrit, itemArmor FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
-            conn.commit()
-            itemStats = cursor.fetchall()
-            if cursor.rowcount:
-                for rows in itemStats:
-                    for cols in rows:
-                        itemData.append("%s" % cols)
-                        if len(itemData) >= 10:
-                            itemDamage = itemData[3]
-                            itemStam = itemData[4]
-                            itemStr = itemData[5]
-                            itemInt = itemData[6]
-                            itemAgi = itemData[7]
-                            itemCrit = itemData[8]
-                            itemArmor = itemData[9]
-                            if len(itemName) > 0:
-                                msg += itemName
-                            if int(itemDamage) > 0:
-                                msg += "\nDamage: " + itemDamage
-                            if int(itemArmor) > 0:
-                                msg += "\nArmor: " + itemArmor
-                            if int(itemStam) > 0:
-                                msg += "\nStamina: " + itemStam
-                            if int(itemStr) > 0:
-                                msg += "\nStrength: " + itemStr
-                            if int(itemInt) > 0:
-                                msg += "\nIntellect: " + itemInt
-                            if int(itemAgi) > 0:
-                                msg += "\nAgility: " + itemAgi
-                            if int(itemCrit) > 0:
-                                msg += "\nCritical Hit Chance: " + itemCrit
-                            msg += "\nCost: " + itemCost + " gold.\n\n"
-                            itemData.clear()
-            else:
-                msg += itemName + "\nCost: " + itemCost + " gold.\n\n"
-        await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA BUY'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
-            userdata = []
-            for row in query:
-                for col in row:
-                    userdata.append("%s" % col)
-            regexp = re.compile("buy (.*)$")
-            name = regexp.search(message.content).group(1)
-            name = " ".join(name.split()).title()
-            heroClass = userdata[3]
-            heroGold = userdata[24]
-            Inventory = userdata[13]
-            cursor.execute("SELECT * FROM AzerothHeroesShop WHERE itemName = '" + name + "';")
-            conn.commit()
-            if cursor.rowcount:
-                itemQuery = cursor.fetchall()
-                itemdata = []
-                for row in itemQuery:
-                    for col in row:
-                        itemdata.append("%s" % col)
-                itemCost = itemdata[1]
-                itemID = itemdata[2]
-                itemClass = itemdata[3]
-                if str(itemClass) != str(heroClass) and str(itemClass) != "all":
-                    msg = usertoken + ', that item is not sold to your class. Type \'Mega Shop\' to see what you can buy.'.format(message)
-                    await client.send_message(message.channel, msg)
-                else:
-                    if int(itemCost) > int(heroGold):
-                        msg = usertoken + ', you cannot afford that item!'.format(message)
-                        await client.send_message(message.channel, msg)
-                    else:
-                        Inventory = Inventory + " " + itemID
-                        heroGold = int(heroGold) - int(itemCost)
-                        cursor.execute("UPDATE AzerothHeroes SET heroGold = '" + str(heroGold) + "', heroInventory = '" + str(Inventory) + "' WHERE userID = '" + usertoken + "';")
-                        conn.commit()
-                        msg = usertoken + ', you\'ve succesfully bought ' + name + '.'.format(message)
-                        await client.send_message(message.channel, msg)
-            else:
-                msg = usertoken + ', could not find the item. Make sure you spelled the name correctly.'.format(message)
-                await client.send_message(message.channel, msg)
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA DUNGEON'):
-        print()
-    if usermessage.startswith('MEGA DEADMINES'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
-        def flee():
-            msg = '```You flee to live another day.```'.format(message)
-            client.send_message(message.channel, msg)
-        if cursor.rowcount:
-            msg = await client.send_message(message.channel, '```You\'ve reached the entrance to The Deadmines, do you wish to enter or flee?```'.format(message))
-            await client.add_reaction(msg, '🏃')
-            await client.add_reaction(msg, '⚔')
-            res = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=msg, timeout = 10)
             try:
-                userReaction = '{0.reaction.emoji}'.format(res)
-                if userReaction == "⚔":
-                    msg = await client.send_message(message.channel, '```You\'re now face to face with Glubtok, the first boss. Do you wish to engage in combat or flee, and live another day?```'.format(message))
-                    await client.add_reaction(msg, '🏃')
-                    await client.add_reaction(msg, '⚔')
-                    res = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=msg, timeout = 10)
-                    try:
-                        userReaction = '{0.reaction.emoji}'.format(res)
-                        if userReaction == "⚔":
-                            print("fight")
-                        else:
-                            await flee()
-                    except:
-                        await flee()
+                findUserData(duelInit)
+                if int(userData["heroCurrentHealth"]) < int(int(userData["heroMaximumHealth"]) * .1):
+                    await client.send_message(message.channel, duelInit + "You\'re far too weary to duel! Rest up before initiating duels.")
                 else:
-                    await flee()
-            except:
-                await flee()
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
-    if usermessage.startswith('MEGA DELETE'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
-        conn.commit()
-        query = cursor.fetchall()
+                    try:
+                        duelBegan = False
+                        findUserData(duelRecip)
+                        if findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") == None: #If not challenged or challenger
+                            insertIntoDuelData(duelInit, duelRecip)
+                        elif findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") != None: #If not challenged or but challenger
+                            updateDuelData("duelRecip", duelRecip, duelInit)
+                        elif findDuelData(duelInit, "duelRecip") != None and findDuelData(duelInit, "duelInit") != None: #If challenged and challenger
+                            duelBegan = True
+                            deleteFromDuelData(duelInit)
+                            deleteFromDuelData(duelRecip)
+                        elif findDuelData(duelInit, "duelRecip") != None and findDuelData(duelInit, "duelInit") == None: #If challenged but not challenger
+                            duelBegan = True
+                            deleteFromDuelData(duelRecip)
+                        if duelBegan == True: #Check if duel began
+                            duelInitRoll = 0
+                            duelRecipRoll = 0
+                            while duelInitRoll == duelRecipRoll:
+                                print()
+                    except Exception as e:
+                        print(e)
+                        await client.send_message(message.channel, 'The user you challenged does not have a character.')
+            except Exception as e:
+                print(e)
+                await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
 
-        if cursor.rowcount:
-            msg = usertoken + ', are you sure you want to delete your hero? This cannot be undone.\nType in "I wish to delete my hero".'.format(message)
-            await client.send_message(message.channel, msg)
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
-    if usermessage.startswith('I WISH TO DELETE MY HERO'):
-        usertoken = '{0.author.mention}'.format(message)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
+    if usermessage.startswith('MEGA RESET'):
+        cursor.execute("update azerothheroes set heroRunning = 'no';")
         conn.commit()
-        query = cursor.fetchall()
-        if cursor.rowcount:
+    if usermessage.startswith('MEGA DELETE'):
+        try:
+            findUserData(usertoken)
+            await client.send_message(message.channel, usertoken + ', are you sure you want to delete your hero? This cannot be undone.\nType in \"I wish to delete my hero\".')
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, 'You do not have a character. Type "Mega Create Hero" to start your journey.')
+    if usermessage.startswith('I WISH TO DELETE MY HERO'):
+        try:
+            findUserData(usertoken)
             cursor.execute("DELETE FROM AzerothHeroes WHERE userID = '" + usertoken + "';")
             conn.commit()
-            msg = 'Your hero has been destroyed. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
-        else:
-            msg = 'You do not have a character. Type "Mega Create Hero" to start your journey.'.format(message)
-            await client.send_message(message.channel, msg)
+            await client.send_message(message.channel, 'Your hero has been destroyed. Type "Mega Create Hero" to start your journey.')
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
     if usermessage.startswith('MEGA RESTART'):
         msg = 'Systems integrity damaged. Shutting d-down...'.format(message)
         await client.send_message(message.channel, msg)
