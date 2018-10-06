@@ -159,6 +159,8 @@ async def on_message(message):
         return outMsg
     def findDuelData(userID, whom):
         try:
+            execution = "SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = '" + userID + "';"
+            print (execution)
             cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = '" + userID + "';")
             conn.commit()
             query = cursor.fetchall()
@@ -306,7 +308,7 @@ async def on_message(message):
 
     #Functions to update duel data
     def updateDuelData(where, value, userID):
-        cursor.execute("UPDATE AzerothHeroesDuels SET " + where + " = " + value + " WHERE userID = '" + userID + "';")
+        cursor.execute("UPDATE AzerothHeroesDuels SET " + where + " = '" + value + "' WHERE duelInit = '" + userID + "';")
         conn.commit()
     def insertIntoDuelData(duelInit, duelRecip):
         cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
@@ -315,6 +317,65 @@ async def on_message(message):
         cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + where + "';")
         conn.commit()
 
+    #Functions to facilitate duel math
+    def ifCrit(userID):
+        findUserData(userID)
+        x = randint(1,100)
+        if x < int(userData["heroCrit"]):
+            return True
+        else:
+            return False
+    def duelRolls(userID):
+        updateHealth(userID)
+        findUserData(userID)
+        if ifCrit(userID) == True:
+            duelRoll = 1.2 * (.75 * int(userData["heroLevel"])) * ((1.6 * int(userData["heroCurrentHealth"])) + (.2 * int(userData["heroStr"])) + (.2 * int(userData["heroInt"])) + (.2 * int(userData["heroAgi"])) + (.1 * int(userData["heroArmor"])) + (.3 * (int(userData["heroDamage"])))) * random.uniform(1, 5)
+        else:
+            duelRoll = (.75 * int(userData["heroLevel"])) * ((1.6 * int(userData["heroCurrentHealth"])) + (.2 * int(userData["heroStr"])) + (.2 * int(userData["heroInt"])) + (.2 * int(userData["heroAgi"])) + (.1 * int(userData["heroArmor"])) + (.3 * (int(userData["heroDamage"])))) * random.uniform(1, 5)
+        return duelRoll
+    def damageInDuel(damageDealer, damageRecip, crit):
+        findUserData(damageDealer)
+        damageDone = 0
+        if crit == True:
+            damageDone = round((1.5 * (1.0 * int(userData["heroLevel"])) * ((.4 * int(userData["heroStr"])) + (.4 * int(userData["heroInt"])) + (.4 * int(userData["heroAgi"])) + (.5 * (int(userData["heroDamage"])))) * random.uniform(2, 6)))
+        else:
+            damageDone = round(((1.0 * int(userData["heroLevel"])) * ((.4 * int(userData["heroStr"])) + (.4 * int(userData["heroInt"])) + (.4 * int(userData["heroAgi"])) + (.5 * (int(userData["heroDamage"])))) * random.uniform(2, 6)))
+        findUserData(damageRecip)
+        newHealth = int(userData["heroCurrentHealth"]) - int(damageDone)
+        if int(newHealth) < 2:
+            newHealth = "2"
+        updateCharacter("heroCurrentHealth", str(newHealth), damageRecip)
+        return damageDone
+    def duelGoldTransfer(goldLoser, goldWinner):
+        findUserData(goldLoser)
+        goldTransfered = int(math.ceil(int(userData["heroGold"]) / 2))
+        updateCharacter("heroGold", str(int(userData["heroGold"]) - goldTransfered), goldLoser)
+        findUserData(goldWinner)
+        updateCharacter("heroGold", str(int(userData["heroGold"]) + goldTransfered), goldWinner)
+        return goldTransfered
+    def duelDecider(winner, loser):
+        damageDone = ""
+        if ifCrit(loser) == True:
+            damageDone = damageInDuel(loser, winner, True)
+        else:
+            damageDone = damageInDuel(loser, winner, False)
+        goldTransfered = duelGoldTransfer(loser, winner)
+        failedAttempt(loser)
+        findUserData(winner)
+        initName = userData["heroName"]
+        initClass = userData["heroClass"]
+        findUserData(loser)
+        recipName = userData["heroName"]
+        msg = ""
+        if initClass == "warrior":
+            msg = "```" + initName + " slashes through " + recipName + "'s armor and cuts them to pieces, winning the duel!"
+        elif initClass == "mage":
+            msg = "```" + initName + " burns " + recipName + " to a crisp until there was nothing but ashes, winning the duel!"
+        elif initClass == "rogue":
+            msg = "```" + initName + " gouges past " + recipName + "'s armor until they to death and winning the duel!"
+        msg +="\n" + str(goldTransfered) + " gold was handed over from " + recipName + " to " + initName + ".\n" + initName + " lost " + str(damageDone) + " health.```"
+        return msg
+    
     usermessage = message.content.upper() 
     if message.author == client.user:
         return
@@ -627,8 +688,10 @@ async def on_message(message):
                         findUserData(duelRecip)
                         if findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") == None: #If not challenged or challenger
                             insertIntoDuelData(duelInit, duelRecip)
+                            await client.send_message(message.channel, duelInit + ' has challenge ' + duelRecip + " to a duel.")
                         elif findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") != None: #If not challenged or but challenger
                             updateDuelData("duelRecip", duelRecip, duelInit)
+                            await client.send_message(message.channel, duelInit + ' has challenge ' + duelRecip + " to a duel.")
                         elif findDuelData(duelInit, "duelRecip") != None and findDuelData(duelInit, "duelInit") != None: #If challenged and challenger
                             duelBegan = True
                             deleteFromDuelData(duelInit)
@@ -640,7 +703,14 @@ async def on_message(message):
                             duelInitRoll = 0
                             duelRecipRoll = 0
                             while duelInitRoll == duelRecipRoll:
-                                print()
+                                duelInitRoll = duelRolls(duelInit)
+                                duelRecipRoll = duelRolls(duelRecip)
+                            outMsg = ""
+                            if duelInitRoll > duelRecipRoll:
+                                outMsg = duelDecider(duelInit, duelRecip)
+                            else:
+                                outMsg = duelDecider(duelRecip, duelInit)
+                            await client.send_message(message.channel, outMsg)
                     except Exception as e:
                         print(e)
                         await client.send_message(message.channel, 'The user you challenged does not have a character.')
