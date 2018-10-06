@@ -370,10 +370,10 @@ async def on_message(message):
         if initClass == "warrior":
             msg = "```" + initName + " slashes through " + recipName + "'s armor and cuts them to pieces, winning the duel!"
         elif initClass == "mage":
-            msg = "```" + initName + " burns " + recipName + " to a crisp until there was nothing but ashes, winning the duel!"
+            msg = "```" + initName + " burns " + recipName + " to a crisp until there's nothing but ashes, winning the duel!"
         elif initClass == "rogue":
             msg = "```" + initName + " gouges past " + recipName + "'s armor until they to death and winning the duel!"
-        msg +="\n" + str(goldTransfered) + " gold was handed over from " + recipName + " to " + initName + ".\n" + initName + " lost " + str(damageDone) + " health.```"
+        msg +="\n" + recipName + " hands over " + str(goldTransfered) + " gold to " + initName + ".\n" + initName + " lost " + str(damageDone) + " health.```"
         return msg
     
     usermessage = message.content.upper() 
