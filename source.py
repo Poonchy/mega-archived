@@ -567,8 +567,8 @@ async def on_message(message):
         msg += "\n"+ u'\u200b' + "\n[Mega Deadmines]: Begins the Deadmines dungeon."
         msg += "\n"+ u'\u200b' + "\n[Mega Shop Deadmines]: Opens up the Deadmine\'s shop."
         msg += "\n"+ u'\u200b' + "\n[Mega Buy]: Type Mega Buy followed by the item name to buy the item from a shop."
-        msg += "\n"+ u'\u200b' + "\n[Mega Delete]: Initiates deletion of your character.\n"
-        msg += "\n"+ u'\u200b' + "\n[Mega Report]: Type a bug report after Mega Report to send the Developer a ticket. I\'ll get back to you as soon as I can!.\n```"
+        msg += "\n"+ u'\u200b' + "\n[Mega Delete]: Initiates deletion of your character."
+        msg += "\n"+ u'\u200b' + "\n[Mega Report]: Type a bug report after Mega Report to send the Developer a ticket. I\'ll get back to you as soon as I can!.```"
         #await client.send_message(message.author, msg)
         await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA CREATE HERO'):
