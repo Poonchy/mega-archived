@@ -908,324 +908,325 @@ async def on_message(message):
                 await client.add_reaction(initmsg, '🏃')
                 await client.add_reaction(initmsg, '⚔')
                 initres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=initmsg, timeout = 60)
-                if "o->DM" not in userData["heroInventory"]:
-                    await client.send_message(message.channel, usertoken + '```You try to open the door, but no matter how hard you try, the door will not budge. It\'s locked, and the key is nowhere in sight.\nOut of the corner of your eye, you catch a glimpse of a merchant, skulking around.\nIn a gruff voice, he barks, ‘Trying to get in there, are we? Not without this here key. You want it? Pay up.’\nYou can view what the merchant sells by typing \'Mega Shop Deadmines\'.```')
-                    currentlyRunning = "no"
-                    updateCharacter("heroRunning", "no", usertoken)
                 else:
                     try:
                         initReaction = '{0.reaction.emoji}'.format(initres)
                         if initReaction == "⚔":
-                            userReaction = "⚔"
-                            loopmsg = ""
-                            returnMsg = ""
-                            prevReturn = ""
-                            while currentlyRunning == "yes":
-                                try:
-                                    await client.delete_message(loopmsg)
-                                    await client.delete_message(prevReturn)
-                                    prevReturn = returnMsg
-                                except Exception as e:
-                                    prevReturn = returnMsg
-                                    print(e)
-                                if currentLockout.count("A") == 7: #Rhahk'Zor
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```The air here is musty, but you proceed into the damp, dark tunnel.\n\nThe clanging of mining picks starts to get louder and louder. An ogre can be heard mercilessly beating squealing Kobolds.\n\nYou finally reach a room with a giant steel door, and the ogre thug guards it.\n\nYou\'re now face-to-face with Rhahk\'Zor, the mining supervisor. Will you engage him? Or will you flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                            if "o->DM" not in userData["heroInventory"]:
+                                await client.send_message(message.channel, usertoken + '```You try to open the door, but no matter how hard you try, the door will not budge. It\'s locked, and the key is nowhere in sight.\nOut of the corner of your eye, you catch a glimpse of a merchant, skulking around.\nIn a gruff voice, he barks, ‘Trying to get in there, are we? Not without this here key. You want it? Pay up.’\nYou can view what the merchant sells by typing \'Mega Shop Deadmines\'.```')
+                                currentlyRunning = "no"
+                                updateCharacter("heroRunning", "no", usertoken)
+                            else:
+                                userReaction = "⚔"
+                                loopmsg = ""
+                                returnMsg = ""
+                                prevReturn = ""
+                                while currentlyRunning == "yes":
                                     try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(300, 330, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Rhahk\'Zor strikes you down with his hammer, cackling as he scoffs, \"Is this best heroes can do? Hah!\"\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 0)
-                                                rewards = rollrewards(usertoken, 6, 10, 2, 15, warriorloot="74",mageloot="75",rogueloot="76")
-                                                msg = usertoken + "```ini\nAfter an intense fight, Rhahk'zor goes down! He mutters, \"VanCleef not gonna be happy when he find out!\" with his dying breath.\n\n" + str(rewards) + " Valiant effort, Hero!```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            returnMsg = await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
+                                        await client.delete_message(loopmsg)
+                                        await client.delete_message(prevReturn)
+                                        prevReturn = returnMsg
                                     except Exception as e:
+                                        prevReturn = returnMsg
                                         print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 6: #Sneed
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```After dealing with a some inane lackeys, you look up to a giant mechanical shredder.\n\n\"Keep it quick, kid, I ain\'t got all day! Hey, you don\'t look familiar! Doesn\'t matter, get to chopping wood!\"\n\nYou now face Sneed, the lumber supervisor. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(330, 360, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Sneed cuts you down, you hear him guffaw, \"Who said you couldn't mix business with pleasure? Now get out of my sight, you buffooning oaf!\"\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 1)
-                                                rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="64",mageloot="65",rogueloot="66")
-                                                msg = usertoken + "```ini\nWith all the might you can muster, you rip the Shredder to shreds. Sneed squirms as he says, \"VanCleef can't replace me! I'm Sneed! The... \" and with those words, he breathes his last.\n\n" + str(rewards) + " Well done, Hero, but what formidable foe lies ahead?```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 5: #Gilnid
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```As you exit the lumberyard, you walk into a massive room with lava pouring from the ceiling.\n\nYou can hear a goblin yelling, \"What am I paying you for! Oh, wait, I\'m not paying you. HAHAHAHA! Get back to making VanCleef\'s weapons, you halfwit, or you\'re going to regret it!\"\n\nAs you walk down the spiraling ramp, you happen upon the blacksmith supervisor, Gilnid. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    await client.add_reaction(loopmsg, '🔴')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔', '🔴'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(360, 390, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Overwhelmed by harvest golems, you\'re shot down by Gilnid as he sneers, \"You're no threat to the Brotherhood! Now leave before you're our next weapon rack!\"\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
-                                                rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
-                                                msg = usertoken + "```ini\nPutting up the best fight he can, Gilnid finally falls as he squawks, \"You\'ll never get to VanCleef! Never! Hahaha...\" and dies.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        elif userReaction == "🔴":
-                                            if didSucceded(550, 580, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, the air is getting heavier and heavier.\n\nGilnid, furious, gouges you until you can no longer stand.\n\n\"YOU\'VE. GOT. NO. RIGHT. PUSHING. THAT... BUTTON! NEVER COME BACK!\"\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
-                                                rewards = rollrewards(usertoken, 18, 22, 2, 35, warriorloot="14",mageloot="15",rogueloot="16")
-                                                msg = usertoken + "```ini\n\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, Gilnid begins to cough as he falls to the ground, unable to breathe.\n\n\"You've... destroyed this place... ruined us all! You\'ll... you'll pay for this! The brotherhood, will... prevail\" he yells before he collapses, lifeless and cold.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 4: #Smite
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```Exiting the forge, you walk onto a dock. In the distance, you see a ship.\n\nA deep, commanding voice roars, \"We\'re under attack! A vast, ye swabs! Repel the invaders!\"\n\nStanding at the ramp to the boat, you’re greeted by a massive Tauren.\n\nYou\'re now facing Mr.Smite, VanCleef\'s deckhand. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(390, 420, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```After beating you with his incredible arsenal, Smite simply looks back and spits on you as he walks back on board.\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 3)
-                                                rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="34",mageloot="35",rogueloot="36")
-                                                msg = usertoken + "```ini\nAs Mr.Smite duels you to his final breath, he mutters, \"You landlubbers are tougher than I thought. I should have improvised.\"\n\nHe collapses to the floor, and the way to the dock is cleared.\n\n" + str(rewards) + " You think that fight was difficult? Just you wait...```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 3: #Cookie
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```Walking on board, you\'re quickly greeted with the sound of rushing footsteps and chaotic shouting.\n\nYou hear a murloc gurgling in the distance. Could it be? Cookie and his gang have caught up to you!\n\n\"Mrglgrglglrlgl!\" he says, with a rolling pin in hand.\n\nYou now face Cookie, the chef of the Brotherhood. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(420, 450, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Cookie finishes beating you with his rolling pin, he leaves as a gang of bandits come and finish you off.\n\n\"We\'ll use you as an example to the others.\" one says, as he stabs your throat.\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 4)
-                                                rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
-                                                msg = usertoken + "```ini\nAs you quickly defeat Cookie, you see a band of thugs run towards you. You hide and avoid them, waiting for the area to clear up.\n\nAfter they\'ve left, you begin making your way up the ship.\n\n" + str(rewards) + " But what other adversaries patrol these mines?```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 2: #Greenskin
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```As you clear the path to the top of the ship, you hear a parrot squawk, \"Intruders! Intruders! RAAWK!\"\n\nA goblin mutters as he walks over to you with his crew, now at the top of the ship.\n\n\"You dare step foot on my ship? I\'ll have you skinned!\"\n\nThe goblin pulls out his spear and charges.\n\nYou now face Greenskin, captain of the Deadmines. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(450, 480, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Greenskin skewers you with his spear, snickering to himself.\n\n\"What did ye hope to accomplish against the cap'n? Win? Pathetic! To Davy Jones's locker with you, imbecile!\"\n\nWith that, your run ends. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 5)
-                                                rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="24",mageloot="25",rogueloot="26")
-                                                msg = usertoken + "```ini\nAs you strike down Captain Greenskin, he yells \"VanCleef! They, they have... arrived. The cap'n... didn't make it!\"\n\n" + str(rewards) + " Only one remains; do you dare face the final boss, Hero?```"
-                                                returnMsg = await client.send_message(message.channel, msg)
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout.count("A") == 1 and currentLockout != "HHHHHHA": #VanCleef
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve slaughtered my entire crew with that weapon, it\'s time I stake it through your heart!\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(520, 550, usertoken) == False:
-                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"You wield such a weapon and still manage to lose? Feeble wretch!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
-                                                currentlyRunning = "no"
-                                                updateCharacter("heroRunning", "no", usertoken)
-                                                break
-                                            else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
-                                                rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
-                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"My death means nothing. This Brotherhood runs deeper than you think. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
-                                                await client.add_reaction(VCmsg, '🤝')
-                                                await client.add_reaction(VCmsg, '⚔')
-                                                VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 60)
-                                                try: 
-                                                    VCReaction = '{0.reaction.emoji}'.format(VCres)
-                                                    if VCReaction == "⚔":
-                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat.\n\nThe leader of the Brotherhood is no more.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
-                                                        currentlyRunning = "no"
-                                                        updateCharacter("heroRunning", "no", usertoken)
-                                                        break
-                                                    else:
-                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
-                                                        currentlyRunning = "no"
-                                                        updateCharacter("heroRunning", "no", usertoken)
-                                                        break
-                                                except Exception as e:
-                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                    if currentLockout.count("A") == 7: #Rhahk'Zor
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```The air here is musty, but you proceed into the damp, dark tunnel.\n\nThe clanging of mining picks starts to get louder and louder. An ogre can be heard mercilessly beating squealing Kobolds.\n\nYou finally reach a room with a giant steel door, and the ogre thug guards it.\n\nYou\'re now face-to-face with Rhahk\'Zor, the mining supervisor. Will you engage him? Or will you flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(300, 330, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```Rhahk\'Zor strikes you down with his hammer, cackling as he scoffs, \"Is this best heroes can do? Hah!\"\n\nWith that, your run ends. Rest up before trying again!```")
                                                     currentlyRunning = "no"
                                                     updateCharacter("heroRunning", "no", usertoken)
                                                     break
-                                        else:
-                                            currentlyRunning = "no"
-                                            updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                            break
-                                    except Exception as e:
-                                        print(e)
-                                        currentlyRunning = "no"
-                                        updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
-                                        break
-                                elif currentLockout == "HHHHHHA": #VanCleef HM
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve defeated my crew without a weapon? It\'s high time I face a worthy opponent.\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
-                                    await client.add_reaction(loopmsg, '🏃')
-                                    await client.add_reaction(loopmsg, '⚔')
-                                    loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
-                                    try:
-                                        userReaction = '{0.reaction.emoji}'.format(loopres)
-                                        if userReaction == "⚔":
-                                            if didSucceded(520, 550, usertoken) == False:
-                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"A clean fight, but you're still no match for the Brotherhood!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 0)
+                                                    rewards = rollrewards(usertoken, 6, 10, 2, 15, warriorloot="74",mageloot="75",rogueloot="76")
+                                                    msg = usertoken + "```ini\nAfter an intense fight, Rhahk'zor goes down! He mutters, \"VanCleef not gonna be happy when he find out!\" with his dying breath.\n\n" + str(rewards) + " Valiant effort, Hero!```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            else:
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
+                                                returnMsg = await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
                                                 break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 6: #Sneed
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```After dealing with a some inane lackeys, you look up to a giant mechanical shredder.\n\n\"Keep it quick, kid, I ain\'t got all day! Hey, you don\'t look familiar! Doesn\'t matter, get to chopping wood!\"\n\nYou now face Sneed, the lumber supervisor. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(330, 360, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```As Sneed cuts you down, you hear him guffaw, \"Who said you couldn't mix business with pleasure? Now get out of my sight, you buffooning oaf!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 1)
+                                                    rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="64",mageloot="65",rogueloot="66")
+                                                    msg = usertoken + "```ini\nWith all the might you can muster, you rip the Shredder to shreds. Sneed squirms as he says, \"VanCleef can't replace me! I'm Sneed! The... \" and with those words, he breathes his last.\n\n" + str(rewards) + " Well done, Hero, but what formidable foe lies ahead?```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
                                             else:
-                                                currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
-                                                rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
-                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"A worthy battle. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
-                                                await client.add_reaction(VCmsg, '🤝')
-                                                await client.add_reaction(VCmsg, '⚔')
-                                                VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 10)
-                                                try: 
-                                                    VCReaction = '{0.reaction.emoji}'.format(VCres)
-                                                    if VCReaction == "⚔":
-                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat. \n\nThe leader of the Brotherhood is no more.\n\nAfter looking around, you find a key. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 5: #Gilnid
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```As you exit the lumberyard, you walk into a massive room with lava pouring from the ceiling.\n\nYou can hear a goblin yelling, \"What am I paying you for! Oh, wait, I\'m not paying you. HAHAHAHA! Get back to making VanCleef\'s weapons, you halfwit, or you\'re going to regret it!\"\n\nAs you walk down the spiraling ramp, you happen upon the blacksmith supervisor, Gilnid. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        await client.add_reaction(loopmsg, '🔴')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔', '🔴'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(360, 390, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```Overwhelmed by harvest golems, you\'re shot down by Gilnid as he sneers, \"You're no threat to the Brotherhood! Now leave before you're our next weapon rack!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
+                                                    rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
+                                                    msg = usertoken + "```ini\nPutting up the best fight he can, Gilnid finally falls as he squawks, \"You\'ll never get to VanCleef! Never! Hahaha...\" and dies.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            elif userReaction == "🔴":
+                                                if didSucceded(550, 580, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, the air is getting heavier and heavier.\n\nGilnid, furious, gouges you until you can no longer stand.\n\n\"YOU\'VE. GOT. NO. RIGHT. PUSHING. THAT... BUTTON! NEVER COME BACK!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
+                                                    rewards = rollrewards(usertoken, 18, 22, 2, 35, warriorloot="14",mageloot="15",rogueloot="16")
+                                                    msg = usertoken + "```ini\n\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, Gilnid begins to cough as he falls to the ground, unable to breathe.\n\n\"You've... destroyed this place... ruined us all! You\'ll... you'll pay for this! The brotherhood, will... prevail\" he yells before he collapses, lifeless and cold.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 4: #Smite
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```Exiting the forge, you walk onto a dock. In the distance, you see a ship.\n\nA deep, commanding voice roars, \"We\'re under attack! A vast, ye swabs! Repel the invaders!\"\n\nStanding at the ramp to the boat, you’re greeted by a massive Tauren.\n\nYou\'re now facing Mr.Smite, VanCleef\'s deckhand. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(390, 420, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```After beating you with his incredible arsenal, Smite simply looks back and spits on you as he walks back on board.\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 3)
+                                                    rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="34",mageloot="35",rogueloot="36")
+                                                    msg = usertoken + "```ini\nAs Mr.Smite duels you to his final breath, he mutters, \"You landlubbers are tougher than I thought. I should have improvised.\"\n\nHe collapses to the floor, and the way to the dock is cleared.\n\n" + str(rewards) + " You think that fight was difficult? Just you wait...```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 3: #Cookie
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```Walking on board, you\'re quickly greeted with the sound of rushing footsteps and chaotic shouting.\n\nYou hear a murloc gurgling in the distance. Could it be? Cookie and his gang have caught up to you!\n\n\"Mrglgrglglrlgl!\" he says, with a rolling pin in hand.\n\nYou now face Cookie, the chef of the Brotherhood. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(420, 450, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```As Cookie finishes beating you with his rolling pin, he leaves as a gang of bandits come and finish you off.\n\n\"We\'ll use you as an example to the others.\" one says, as he stabs your throat.\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 4)
+                                                    rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
+                                                    msg = usertoken + "```ini\nAs you quickly defeat Cookie, you see a band of thugs run towards you. You hide and avoid them, waiting for the area to clear up.\n\nAfter they\'ve left, you begin making your way up the ship.\n\n" + str(rewards) + " But what other adversaries patrol these mines?```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 2: #Greenskin
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```As you clear the path to the top of the ship, you hear a parrot squawk, \"Intruders! Intruders! RAAWK!\"\n\nA goblin mutters as he walks over to you with his crew, now at the top of the ship.\n\n\"You dare step foot on my ship? I\'ll have you skinned!\"\n\nThe goblin pulls out his spear and charges.\n\nYou now face Greenskin, captain of the Deadmines. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(450, 480, usertoken) == False:
+                                                    returnMsg = await client.send_message(message.channel, usertoken + "```Greenskin skewers you with his spear, snickering to himself.\n\n\"What did ye hope to accomplish against the cap'n? Win? Pathetic! To Davy Jones's locker with you, imbecile!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 5)
+                                                    rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="24",mageloot="25",rogueloot="26")
+                                                    msg = usertoken + "```ini\nAs you strike down Captain Greenskin, he yells \"VanCleef! They, they have... arrived. The cap'n... didn't make it!\"\n\n" + str(rewards) + " Only one remains; do you dare face the final boss, Hero?```"
+                                                    returnMsg = await client.send_message(message.channel, msg)
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout.count("A") == 1 and currentLockout != "HHHHHHA": #VanCleef
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve slaughtered my entire crew with that weapon, it\'s time I stake it through your heart!\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(520, 550, usertoken) == False:
+                                                    await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"You wield such a weapon and still manage to lose? Feeble wretch!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
+                                                    rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
+                                                    VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"My death means nothing. This Brotherhood runs deeper than you think. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
+                                                    await client.add_reaction(VCmsg, '🤝')
+                                                    await client.add_reaction(VCmsg, '⚔')
+                                                    VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 60)
+                                                    try: 
+                                                        VCReaction = '{0.reaction.emoji}'.format(VCres)
+                                                        if VCReaction == "⚔":
+                                                            await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat.\n\nThe leader of the Brotherhood is no more.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                            currentlyRunning = "no"
+                                                            updateCharacter("heroRunning", "no", usertoken)
+                                                            break
+                                                        else:
+                                                            await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                            currentlyRunning = "no"
+                                                            updateCharacter("heroRunning", "no", usertoken)
+                                                            break
+                                                    except Exception as e:
+                                                        await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                        currentlyRunning = "no"
+                                                        updateCharacter("heroRunning", "no", usertoken)
+                                                        break
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
+                                            currentlyRunning = "no"
+                                            updateCharacter("heroRunning", "no", usertoken)
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
+                                            break
+                                    elif currentLockout == "HHHHHHA": #VanCleef HM
+                                        loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve defeated my crew without a weapon? It\'s high time I face a worthy opponent.\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
+                                        await client.add_reaction(loopmsg, '🏃')
+                                        await client.add_reaction(loopmsg, '⚔')
+                                        loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
+                                        try:
+                                            userReaction = '{0.reaction.emoji}'.format(loopres)
+                                            if userReaction == "⚔":
+                                                if didSucceded(520, 550, usertoken) == False:
+                                                    await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"A clean fight, but you're still no match for the Brotherhood!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
+                                                    currentlyRunning = "no"
+                                                    updateCharacter("heroRunning", "no", usertoken)
+                                                    break
+                                                else:
+                                                    currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
+                                                    rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
+                                                    VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"A worthy battle. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
+                                                    await client.add_reaction(VCmsg, '🤝')
+                                                    await client.add_reaction(VCmsg, '⚔')
+                                                    VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 10)
+                                                    try: 
+                                                        VCReaction = '{0.reaction.emoji}'.format(VCres)
+                                                        if VCReaction == "⚔":
+                                                            await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat. \n\nThe leader of the Brotherhood is no more.\n\nAfter looking around, you find a key. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                            addItemToInventory(usertoken, "o->KARA")
+                                                            currentlyRunning = "no"
+                                                            updateCharacter("heroRunning", "no", usertoken)
+                                                            await client.send_message(message.channel, worldFirst(usertoken))
+                                                            break
+                                                        else:
+                                                            await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes, but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef runs off and jumps off the top of the boat, disappearing down below.\n\nWhat's this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                            addItemToInventory(usertoken, "o->KARA")
+                                                            currentlyRunning = "no"
+                                                            updateCharacter("heroRunning", "no", usertoken)
+                                                            await client.send_message(message.channel, worldFirst(usertoken))
+                                                            break
+                                                    except Exception as e:
+                                                        await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWhat\'s this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                         addItemToInventory(usertoken, "o->KARA")
                                                         currentlyRunning = "no"
                                                         updateCharacter("heroRunning", "no", usertoken)
                                                         await client.send_message(message.channel, worldFirst(usertoken))
                                                         break
-                                                    else:
-                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes, but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef runs off and jumps off the top of the boat, disappearing down below.\n\nWhat's this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
-                                                        addItemToInventory(usertoken, "o->KARA")
-                                                        currentlyRunning = "no"
-                                                        updateCharacter("heroRunning", "no", usertoken)
-                                                        await client.send_message(message.channel, worldFirst(usertoken))
-                                                        break
-                                                except Exception as e:
-                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWhat\'s this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
-                                                    addItemToInventory(usertoken, "o->KARA")
-                                                    currentlyRunning = "no"
-                                                    updateCharacter("heroRunning", "no", usertoken)
-                                                    await client.send_message(message.channel, worldFirst(usertoken))
-                                                    break
-                                        else:
+                                            else:
+                                                currentlyRunning = "no"
+                                                updateCharacter("heroRunning", "no", usertoken)
+                                                await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                                break
+                                        except Exception as e:
+                                            print(e)
                                             currentlyRunning = "no"
                                             updateCharacter("heroRunning", "no", usertoken)
-                                            await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
+                                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                             break
-                                    except Exception as e:
-                                        print(e)
+                                    elif userReaction == "🏃":
+                                        await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
                                         currentlyRunning = "no"
                                         updateCharacter("heroRunning", "no", usertoken)
-                                        await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
-                                elif userReaction == "🏃":
-                                    await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
-                                    currentlyRunning = "no"
-                                    updateCharacter("heroRunning", "no", usertoken)
-                                    break
-                                else: #Dungeon Cleared
-                                    await client.send_message(message.channel,usertoken + "```You stroll through the Deadmines, the corpses littering the floor. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
-                                    currentlyRunning = "no"
-                                    updateCharacter("heroRunning", "no", usertoken)
-                                    break
+                                    else: #Dungeon Cleared
+                                        await client.send_message(message.channel,usertoken + "```You stroll through the Deadmines, the corpses littering the floor. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                        currentlyRunning = "no"
+                                        updateCharacter("heroRunning", "no", usertoken)
+                                        break
                         else:
                             await client.send_message(message.channel, usertoken + '```You flee to live another day.```')
                             currentlyRunning = "no"
