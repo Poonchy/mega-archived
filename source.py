@@ -461,7 +461,7 @@ async def on_message(message):
             msg = "```" + initName + " burns " + recipName + " to a crisp until there's nothing but ashes, winning the duel!"
         elif initClass == "rogue":
             msg = "```" + initName + " gouges past " + recipName + "'s armor until they to death and winning the duel!"
-        msg +="\n" + recipName + " hands over " + str(goldTransfered) + " gold to " + initName + ".\n" + initName + " lost " + str(damageDone) + " health.```"
+        msg +="\n\n" + recipName + " hands over " + str(goldTransfered) + " gold to " + initName + ".\n\n" + initName + " lost " + str(damageDone) + " health.```"
         return msg
     
     #Functions to facilitate dungeon math
@@ -865,10 +865,10 @@ async def on_message(message):
                         findUserData(duelRecip)
                         if findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") == None: #If not challenged or challenger
                             insertIntoDuelData(duelInit, duelRecip)
-                            await client.send_message(message.channel, duelInit + ' has challenge ' + duelRecip + " to a duel.")
+                            await client.send_message(message.channel, duelInit + ' has challenged ' + duelRecip + " to a duel.")
                         elif findDuelData(duelInit, "duelRecip") == None and findDuelData(duelInit, "duelInit") != None: #If not challenged or but challenger
                             updateDuelData("duelRecip", duelRecip, duelInit)
-                            await client.send_message(message.channel, duelInit + ' has challenge ' + duelRecip + " to a duel.")
+                            await client.send_message(message.channel, duelInit + ' has challenged ' + duelRecip + " to a duel.")
                         elif findDuelData(duelInit, "duelRecip") != None and findDuelData(duelInit, "duelInit") != None: #If challenged and challenger
                             duelBegan = True
                             deleteFromDuelData(duelInit)
