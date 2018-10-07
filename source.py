@@ -26,7 +26,7 @@ async def on_message(message):
     shopData = {}
     #Functions to retrieve data
     def findUserData(userID):
-        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = '" + userID + "';")
+        cursor.execute("SELECT * FROM AzerothHeroes WHERE userID = %s;", (userID,))
         conn.commit()
         query = cursor.fetchall()
         tempdata = []
@@ -64,9 +64,9 @@ async def on_message(message):
         userData["heroRunning"] = tempdata[29]
     def findItemData(itemID):
         if itemID[0].isdigit() or itemID[:3] == "o->":
-            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemID = '" + itemID + "';")
+            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemID = %s;", (itemID,))
         else:
-            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemName = '" + itemID + "';")
+            cursor.execute("SELECT * FROM AzerothHeroesItems WHERE itemID = %s;", (itemID,))
         conn.commit()
         query = cursor.fetchall()
         tempdata = []
@@ -108,7 +108,7 @@ async def on_message(message):
                 outMsg += "\nCritical Hit Chance: " + itemData["itemCrit"]
             if int(itemData["sellValue"]) > 0:
                 outMsg += "\nSell value: " + itemData["sellValue"]
-            outMsg += "\n\n"
+            outMsg += "\n"+ u'\u200b' + "\n"
             itemData.clear()
         outMsg += "```"
         return outMsg
@@ -162,9 +162,7 @@ async def on_message(message):
         return outMsg
     def findDuelData(userID, whom):
         try:
-            execution = "SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = '" + userID + "';"
-            print (execution)
-            cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = '" + userID + "';")
+            cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE %s = '%s';", (whom, userID,))
             conn.commit()
             query = cursor.fetchall()
             tempdata = []
@@ -180,9 +178,9 @@ async def on_message(message):
             return None
     def findShopData(itemID, shop):
         if itemID[0].isdigit() or itemID[:3] == "o->":
-            cursor.execute("SELECT * FROM " + shop + " WHERE itemID = '" + itemID + "';")
+            cursor.execute("SELECT * FROM %s WHERE itemID = '%s';", (shop, itemID,))
         else:
-            cursor.execute("SELECT * FROM " + shop + " WHERE itemName = '" + itemID + "';")
+            cursor.execute("SELECT * FROM %s WHERE itemName = '%s';", (shop, itemID,))
         conn.commit()
         tempdata = []
         query = cursor.fetchall()
@@ -195,7 +193,7 @@ async def on_message(message):
         shopData["itemClass"] = tempdata[3]
     def displayShopData(shop, userID):
         findUserData(userID)
-        cursor.execute("SELECT itemID FROM " + shop + " WHERE itemClass = '" + userData["heroClass"] + "' OR itemClass = 'all';")
+        cursor.execute("SELECT itemID FROM %s WHERE itemClass = '" + userData["heroClass"] + "' OR itemClass = 'all';", (shop,))
         conn.commit()
         query = cursor.fetchall()
         tempdata = []
@@ -227,7 +225,7 @@ async def on_message(message):
             if int(itemData["itemCrit"]) > 0:
                 outMsg += "\nCritical Hit Chance: " + itemData["itemCrit"]
             outMsg += "\nCost: " + shopData["itemCost"]
-            outMsg += "\n\n"
+            outMsg += "\n"+ u'\u200b' + "\n"
             itemData.clear()
         return outMsg
 
@@ -244,7 +242,7 @@ async def on_message(message):
     
     #Functions to update user data
     def updateCharacter(where, value, userID):
-        cursor.execute("UPDATE AzerothHeroes SET " + where + " = '" + value + "' WHERE userID = '" + userID + "';")
+        cursor.execute("UPDATE AzerothHeroes SET " + where + " = %s WHERE userID = %s;", (value, userID,))
         conn.commit()
     def updateHealth(userID):
         findUserData(userID)
@@ -396,13 +394,13 @@ async def on_message(message):
 
     #Functions to update duel data
     def updateDuelData(where, value, userID):
-        cursor.execute("UPDATE AzerothHeroesDuels SET " + where + " = '" + value + "' WHERE duelInit = '" + userID + "';")
+        cursor.execute("UPDATE AzerothHeroesDuels SET %s = '%s' WHERE duelInit = '%s';",(where, value, userID,))
         conn.commit()
     def insertIntoDuelData(duelInit, duelRecip):
-        cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES ('" + duelInit + "','" + duelRecip + "');")
+        cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES ('%s','%s');", (duelInit, duelRecip,))
         conn.commit()
     def deleteFromDuelData(where):
-        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '" + where + "';")
+        cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '%s';", (where,))
         conn.commit()
 
     #Functions to facilitate duel math
@@ -461,7 +459,7 @@ async def on_message(message):
             msg = "```" + initName + " burns " + recipName + " to a crisp until there's nothing but ashes, winning the duel!"
         elif initClass == "rogue":
             msg = "```" + initName + " gouges past " + recipName + "'s armor until they to death and winning the duel!"
-        msg +="\n\n" + recipName + " hands over " + str(goldTransfered) + " gold to " + initName + ".\n\n" + initName + " lost " + str(damageDone) + " health.```"
+        msg +="\n"+ u'\u200b' + "\n" + recipName + " hands over " + str(goldTransfered) + " gold to " + initName + ".\n"+ u'\u200b' + "\n" + initName + " lost " + str(damageDone) + " health.```"
         return msg
     
     #Functions to facilitate dungeon math
@@ -531,7 +529,7 @@ async def on_message(message):
             findUserData(userID)
             cursor.execute("UPDATE worldFirstVC SET killed = 'yes';")
             conn.commit()
-            outMsg = userID + "```ini\nCongratulations, you\'re the first to kill Hardmode Edwin VanCleef!\n\nYou were rewarded: ["
+            outMsg = userID + "```ini\nCongratulations, you\'re the first to kill Hardmode Edwin VanCleef!\n"+ u'\u200b' + "\nYou were rewarded: ["
             loot = ""
             loot2 = ""
             if userData["heroClass"] == "warrior":
@@ -548,7 +546,7 @@ async def on_message(message):
                 addItemToInventory(userID, loot2)
                 findItemData(loot2)
                 outMsg += " and [" + itemData["itemName"] + "]"
-            outMsg += "\n\nAll will fear the name " + userData["heroName"] + ".```"
+            outMsg += "\n"+ u'\u200b' + "\nAll will fear the name " + userData["heroName"] + ".```"
             return outMsg    
         else:
             print()
@@ -557,9 +555,22 @@ async def on_message(message):
     if message.author == client.user:
         return
     if usermessage.startswith('MEGA HELP'):
-        await client.send_message(message.author, 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message))
-    if usermessage.startswith('MEGA INTRODUCE YOURSELF'):
-        await client.send_message(message.channel, 'Hello, {0.author.mention}, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Type "Mega Create Hero" to get started, or "Mega Delete" to delete your hero.'.format(message))
+        msg = 'Hello, I\'m a Machine Engineered to Guide Anyone, or M.E.G.A! Here are my commands:\n'
+        msg += "```ini\n[Mega Create Hero]: initiates character creation."
+        msg += "\n"+ u'\u200b' + "\n[Mega Hero]: Shows you your character sheet. @ someone to show their inventory."
+        msg += "\n"+ u'\u200b' + "\n[Mega Inventory]: Shows you your character inventory. @ someone to show their inventory."
+        msg += "\n"+ u'\u200b' + "\n[Mega Equip]: Type Mega Equip followed by the item name to equip an item."
+        msg += "\n"+ u'\u200b' + "\n[Mega Unequip]: Type Mega UnEquip followed by the item name to unequip an item."
+        msg += "\n"+ u'\u200b' + "\n[Mega Inspect]: Shows you your character\'s current equipment. @ someone to show their equipment."
+        msg += "\n"+ u'\u200b' + "\n[Mega Train]: Uses up health to gain experience and gold."
+        msg += "\n"+ u'\u200b' + "\n[Mega Duel]: @ someone to initiate a duel with them. Winner takes half the loser\'s gold."
+        msg += "\n"+ u'\u200b' + "\n[Mega Deadmines]: Begins the Deadmines dungeon."
+        msg += "\n"+ u'\u200b' + "\n[Mega Shop Deadmines]: Opens up the Deadmine\'s shop."
+        msg += "\n"+ u'\u200b' + "\n[Mega Buy]: Type Mega Buy followed by the item name to buy the item from a shop."
+        msg += "\n"+ u'\u200b' + "\n[Mega Delete]: Initiates deletion of your character.\n"
+        msg += "\n"+ u'\u200b' + "\n[Mega Report]: Type a bug report after Mega Report to send the Developer a ticket. I\'ll get back to you as soon as I can!.\n```"
+        #await client.send_message(message.author, msg)
+        await client.send_message(message.channel, msg)
     if usermessage.startswith('MEGA CREATE HERO'):
         try:
             findUserData(usertoken)
@@ -818,10 +829,10 @@ async def on_message(message):
                         updateCharacter("heroCurrentHealth", str(newHealth), usertoken)
                         additive = levelUp(usertoken)
                         if additive != None:
-                            msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\n\nYou gained 1 EXP and earned " + str(gold) + " gold.\n\n" + additive + "\n\nNow standing at " + str(newHealth) + " health remaining, would you like to train or rest up?```"
+                            msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\n"+ u'\u200b' + "\nYou gained 1 EXP and earned " + str(gold) + " gold.\n"+ u'\u200b' + "\n" + additive + "\n"+ u'\u200b' + "\nNow standing at " + str(newHealth) + " health remaining, would you like to train or rest up?```"
                             additive = None
                         else:
-                            msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\n\nYou gained 1 EXP and earned " + str(gold) + " gold.\n\nNow standing at " + str(newHealth) + " health remaining, would you like to train or rest up?```"
+                            msg = usertoken + "```You succesfully completed your training and lost " + str(healthlost) + " health.\n"+ u'\u200b' + "\nYou gained 1 EXP and earned " + str(gold) + " gold.\n"+ u'\u200b' + "\nNow standing at " + str(newHealth) + " health remaining, would you like to train or rest up?```"
                         reloop = await client.send_message(message.channel, msg)
                         await client.add_reaction(reloop, '💤')
                         await client.add_reaction(reloop, '⚔')
@@ -835,13 +846,13 @@ async def on_message(message):
                             elif userReaction == "💤":
                                 stillRunning = "no"
                                 updateCharacter("heroRunning", "no", usertoken)
-                                await client.send_message(message.channel, usertoken + "```You choose to rest up and train another day.```")
+                                await client.send_message(message.channel, usertoken + "\n```You choose to rest up and train another day.```")
                                 break
                         except Exception as e:
                             print(e)
                             stillRunning = "no"
                             updateCharacter("heroRunning", "no", usertoken)
-                            await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to rest up and train another day.```")
+                            await client.send_message(message.channel, usertoken + "\n```After contemplating for awhile, you choose to rest up and train another day.```")
                             break
                         userReaction = ""
             else:
@@ -929,7 +940,7 @@ async def on_message(message):
                                     prevReturn = returnMsg
                                     print(e)
                                 if currentLockout.count("A") == 7: #Rhahk'Zor
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```The air here is musty, but you proceed into the damp, dark tunnel.\n\nThe clanging of mining picks starts to get louder and louder. An ogre can be heard mercilessly beating squealing Kobolds.\n\nYou finally reach a room with a giant steel door, and the ogre thug guards it.\n\nYou\'re now face-to-face with Rhahk\'Zor, the mining supervisor. Will you engage him? Or will you flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```The air here is musty, but you proceed into the damp, dark tunnel.\n"+ u'\u200b' + "\nThe clanging of mining picks starts to get louder and louder. An ogre can be heard mercilessly beating squealing Kobolds.\n"+ u'\u200b' + "\nYou finally reach a room with a giant steel door, and the ogre thug guards it.\n"+ u'\u200b' + "\nYou\'re now face-to-face with Rhahk\'Zor, the mining supervisor. Will you engage him? Or will you flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -937,14 +948,14 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(300, 330, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Rhahk\'Zor strikes you down with his hammer, cackling as he scoffs, \"Is this best heroes can do? Hah!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```Rhahk\'Zor strikes you down with his hammer, cackling as he scoffs, \"Is this best heroes can do? Hah!\"\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 0)
                                                 rewards = rollrewards(usertoken, 6, 10, 2, 15, warriorloot="74",mageloot="75",rogueloot="76")
-                                                msg = usertoken + "```ini\nAfter an intense fight, Rhahk'zor goes down! He mutters, \"VanCleef not gonna be happy when he find out!\" with his dying breath.\n\n" + str(rewards) + " Valiant effort, Hero!```"
+                                                msg = usertoken + "```ini\nAfter an intense fight, Rhahk'zor goes down! He mutters, \"VanCleef not gonna be happy when he find out!\" with his dying breath.\n"+ u'\u200b' + "\n" + str(rewards) + " Valiant effort, Hero!```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -958,7 +969,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 6: #Sneed
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```After dealing with a some inane lackeys, you look up to a giant mechanical shredder.\n\n\"Keep it quick, kid, I ain\'t got all day! Hey, you don\'t look familiar! Doesn\'t matter, get to chopping wood!\"\n\nYou now face Sneed, the lumber supervisor. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```After dealing with a some inane lackeys, you look up to a giant mechanical shredder.\n"+ u'\u200b' + "\n\"Keep it quick, kid, I ain\'t got all day! Hey, you don\'t look familiar! Doesn\'t matter, get to chopping wood!\"\n"+ u'\u200b' + "\nYou now face Sneed, the lumber supervisor. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -966,14 +977,14 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(330, 360, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Sneed cuts you down, you hear him guffaw, \"Who said you couldn't mix business with pleasure? Now get out of my sight, you buffooning oaf!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Sneed cuts you down, you hear him guffaw, \"Who said you couldn't mix business with pleasure? Now get out of my sight, you buffooning oaf!\"\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 1)
                                                 rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="64",mageloot="65",rogueloot="66")
-                                                msg = usertoken + "```ini\nWith all the might you can muster, you rip the Shredder to shreds. Sneed squirms as he says, \"VanCleef can't replace me! I'm Sneed! The... \" and with those words, he breathes his last.\n\n" + str(rewards) + " Well done, Hero, but what formidable foe lies ahead?```"
+                                                msg = usertoken + "```ini\nWith all the might you can muster, you rip the Shredder to shreds. Sneed squirms as he says, \"VanCleef can't replace me! I'm Sneed! The... \" and with those words, he breathes his last.\n"+ u'\u200b' + "\n" + str(rewards) + " Well done, Hero, but what formidable foe lies ahead?```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -987,7 +998,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 5: #Gilnid
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```As you exit the lumberyard, you walk into a massive room with lava pouring from the ceiling.\n\nYou can hear a goblin yelling, \"What am I paying you for! Oh, wait, I\'m not paying you. HAHAHAHA! Get back to making VanCleef\'s weapons, you halfwit, or you\'re going to regret it!\"\n\nAs you walk down the spiraling ramp, you happen upon the blacksmith supervisor, Gilnid. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```As you exit the lumberyard, you walk into a massive room with lava pouring from the ceiling.\n"+ u'\u200b' + "\nYou can hear a goblin yelling, \"What am I paying you for! Oh, wait, I\'m not paying you. HAHAHAHA! Get back to making VanCleef\'s weapons, you halfwit, or you\'re going to regret it!\"\n"+ u'\u200b' + "\nAs you walk down the spiraling ramp, you happen upon the blacksmith supervisor, Gilnid. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     await client.add_reaction(loopmsg, '🔴')
@@ -996,25 +1007,25 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(360, 390, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Overwhelmed by harvest golems, you\'re shot down by Gilnid as he sneers, \"You're no threat to the Brotherhood! Now leave before you're our next weapon rack!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```Overwhelmed by harvest golems, you\'re shot down by Gilnid as he sneers, \"You're no threat to the Brotherhood! Now leave before you're our next weapon rack!\"\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
                                                 rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
-                                                msg = usertoken + "```ini\nPutting up the best fight he can, Gilnid finally falls as he squawks, \"You\'ll never get to VanCleef! Never! Hahaha...\" and dies.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
+                                                msg = usertoken + "```ini\nPutting up the best fight he can, Gilnid finally falls as he squawks, \"You\'ll never get to VanCleef! Never! Hahaha...\" and dies.\n"+ u'\u200b' + "\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         elif userReaction == "🔴":
                                             if didSucceded(550, 580, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, the air is getting heavier and heavier.\n\nGilnid, furious, gouges you until you can no longer stand.\n\n\"YOU\'VE. GOT. NO. RIGHT. PUSHING. THAT... BUTTON! NEVER COME BACK!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n"+ u'\u200b' + "\nAs the ceiling begins to crumble around you, the air is getting heavier and heavier.\n"+ u'\u200b' + "\nGilnid, furious, gouges you until you can no longer stand.\n"+ u'\u200b' + "\n\"YOU\'VE. GOT. NO. RIGHT. PUSHING. THAT... BUTTON! NEVER COME BACK!\"\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 2)
                                                 rewards = rollrewards(usertoken, 18, 22, 2, 35, warriorloot="14",mageloot="15",rogueloot="16")
-                                                msg = usertoken + "```ini\n\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n\nAs the ceiling begins to crumble around you, Gilnid begins to cough as he falls to the ground, unable to breathe.\n\n\"You've... destroyed this place... ruined us all! You\'ll... you'll pay for this! The brotherhood, will... prevail\" he yells before he collapses, lifeless and cold.\n\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
+                                                msg = usertoken + "```ini\n\"You fiend! You've got no right pushing the self-destruct button!\" an irate voice howls in the distance.\n"+ u'\u200b' + "\nAs the ceiling begins to crumble around you, Gilnid begins to cough as he falls to the ground, unable to breathe.\n"+ u'\u200b' + "\n\"You've... destroyed this place... ruined us all! You\'ll... you'll pay for this! The brotherhood, will... prevail\" he yells before he collapses, lifeless and cold.\n"+ u'\u200b' + "\n" + str(rewards) + " Save your strength, Hero, for the WORST is yet to come!```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -1028,7 +1039,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 4: #Smite
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```Exiting the forge, you walk onto a dock. In the distance, you see a ship.\n\nA deep, commanding voice roars, \"We\'re under attack! A vast, ye swabs! Repel the invaders!\"\n\nStanding at the ramp to the boat, you’re greeted by a massive Tauren.\n\nYou\'re now facing Mr.Smite, VanCleef\'s deckhand. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```Exiting the forge, you walk onto a dock. In the distance, you see a ship.\n"+ u'\u200b' + "\nA deep, commanding voice roars, \"We\'re under attack! A vast, ye swabs! Repel the invaders!\"\n"+ u'\u200b' + "\nStanding at the ramp to the boat, you’re greeted by a massive Tauren.\n"+ u'\u200b' + "\nYou\'re now facing Mr.Smite, VanCleef\'s deckhand. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -1036,14 +1047,14 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(390, 420, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```After beating you with his incredible arsenal, Smite simply looks back and spits on you as he walks back on board.\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```After beating you with his incredible arsenal, Smite simply looks back and spits on you as he walks back on board.\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 3)
                                                 rewards = rollrewards(usertoken, 8, 12, 2, 15, warriorloot="34",mageloot="35",rogueloot="36")
-                                                msg = usertoken + "```ini\nAs Mr.Smite duels you to his final breath, he mutters, \"You landlubbers are tougher than I thought. I should have improvised.\"\n\nHe collapses to the floor, and the way to the dock is cleared.\n\n" + str(rewards) + " You think that fight was difficult? Just you wait...```"
+                                                msg = usertoken + "```ini\nAs Mr.Smite duels you to his final breath, he mutters, \"You landlubbers are tougher than I thought. I should have improvised.\"\n"+ u'\u200b' + "\nHe collapses to the floor, and the way to the dock is cleared.\n"+ u'\u200b' + "\n" + str(rewards) + " You think that fight was difficult? Just you wait...```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -1057,7 +1068,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 3: #Cookie
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```Walking on board, you\'re quickly greeted with the sound of rushing footsteps and chaotic shouting.\n\nYou hear a murloc gurgling in the distance. Could it be? Cookie and his gang have caught up to you!\n\n\"Mrglgrglglrlgl!\" he says, with a rolling pin in hand.\n\nYou now face Cookie, the chef of the Brotherhood. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```Walking on board, you\'re quickly greeted with the sound of rushing footsteps and chaotic shouting.\n"+ u'\u200b' + "\nYou hear a murloc gurgling in the distance. Could it be? Cookie and his gang have caught up to you!\n"+ u'\u200b' + "\n\"Mrglgrglglrlgl!\" he says, with a rolling pin in hand.\n"+ u'\u200b' + "\nYou now face Cookie, the chef of the Brotherhood. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -1065,14 +1076,14 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(420, 450, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Cookie finishes beating you with his rolling pin, he leaves as a gang of bandits come and finish you off.\n\n\"We\'ll use you as an example to the others.\" one says, as he stabs your throat.\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```As Cookie finishes beating you with his rolling pin, he leaves as a gang of bandits come and finish you off.\n"+ u'\u200b' + "\n\"We\'ll use you as an example to the others.\" one says, as he stabs your throat.\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 4)
                                                 rewards = rollrewards(usertoken, 10, 14, 2, 15, warriorloot="44",mageloot="45",rogueloot="46")
-                                                msg = usertoken + "```ini\nAs you quickly defeat Cookie, you see a band of thugs run towards you. You hide and avoid them, waiting for the area to clear up.\n\nAfter they\'ve left, you begin making your way up the ship.\n\n" + str(rewards) + " But what other adversaries patrol these mines?```"
+                                                msg = usertoken + "```ini\nAs you quickly defeat Cookie, you see a band of thugs run towards you. You hide and avoid them, waiting for the area to clear up.\n"+ u'\u200b' + "\nAfter they\'ve left, you begin making your way up the ship.\n"+ u'\u200b' + "\n" + str(rewards) + " But what other adversaries patrol these mines?```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -1086,7 +1097,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 2: #Greenskin
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```As you clear the path to the top of the ship, you hear a parrot squawk, \"Intruders! Intruders! RAAWK!\"\n\nA goblin mutters as he walks over to you with his crew, now at the top of the ship.\n\n\"You dare step foot on my ship? I\'ll have you skinned!\"\n\nThe goblin pulls out his spear and charges.\n\nYou now face Greenskin, captain of the Deadmines. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```As you clear the path to the top of the ship, you hear a parrot squawk, \"Intruders! Intruders! RAAWK!\"\n"+ u'\u200b' + "\nA goblin mutters as he walks over to you with his crew, now at the top of the ship.\n"+ u'\u200b' + "\n\"You dare step foot on my ship? I\'ll have you skinned!\"\n"+ u'\u200b' + "\nThe goblin pulls out his spear and charges.\n"+ u'\u200b' + "\nYou now face Greenskin, captain of the Deadmines. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -1094,14 +1105,14 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(450, 480, usertoken) == False:
-                                                returnMsg = await client.send_message(message.channel, usertoken + "```Greenskin skewers you with his spear, snickering to himself.\n\n\"What did ye hope to accomplish against the cap'n? Win? Pathetic! To Davy Jones's locker with you, imbecile!\"\n\nWith that, your run ends. Rest up before trying again!```")
+                                                returnMsg = await client.send_message(message.channel, usertoken + "```Greenskin skewers you with his spear, snickering to himself.\n"+ u'\u200b' + "\n\"What did ye hope to accomplish against the cap'n? Win? Pathetic! To Davy Jones's locker with you, imbecile!\"\n"+ u'\u200b' + "\nWith that, your run ends. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 5)
                                                 rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="24",mageloot="25",rogueloot="26")
-                                                msg = usertoken + "```ini\nAs you strike down Captain Greenskin, he yells \"VanCleef! They, they have... arrived. The cap'n... didn't make it!\"\n\n" + str(rewards) + " Only one remains; do you dare face the final boss, Hero?```"
+                                                msg = usertoken + "```ini\nAs you strike down Captain Greenskin, he yells \"VanCleef! They, they have... arrived. The cap'n... didn't make it!\"\n"+ u'\u200b' + "\n" + str(rewards) + " Only one remains; do you dare face the final boss, Hero?```"
                                                 returnMsg = await client.send_message(message.channel, msg)
                                         else:
                                             currentlyRunning = "no"
@@ -1115,7 +1126,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout.count("A") == 1 and currentLockout != "HHHHHHA": #VanCleef
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve slaughtered my entire crew with that weapon, it\'s time I stake it through your heart!\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n"+ u'\u200b' + "\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n"+ u'\u200b' + "\n\"You\'ve slaughtered my entire crew with that weapon, it\'s time I stake it through your heart!\"\n"+ u'\u200b' + "\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -1123,31 +1134,31 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(520, 550, usertoken) == False:
-                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"You wield such a weapon and still manage to lose? Feeble wretch!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
+                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n"+ u'\u200b' + "\nHe turns around and smirks as he says, \"You wield such a weapon and still manage to lose? Feeble wretch!\"\n"+ u'\u200b' + "\nWith that, your run ends. How pathetic. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
                                                 rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
-                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"My death means nothing. This Brotherhood runs deeper than you think. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
+                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n"+ u'\u200b' + "\n\"My death means nothing. This Brotherhood runs deeper than you think. Strike me down, if you will, but know that your actions change nothing!\"\n"+ u'\u200b' + "\n" + str(rewards) + "\n"+ u'\u200b' + "\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n"+ u'\u200b' + "\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
                                                 await client.add_reaction(VCmsg, '🤝')
                                                 await client.add_reaction(VCmsg, '⚔')
                                                 VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 60)
                                                 try: 
                                                     VCReaction = '{0.reaction.emoji}'.format(VCres)
                                                     if VCReaction == "⚔":
-                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat.\n\nThe leader of the Brotherhood is no more.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat.\n"+ u'\u200b' + "\nThe leader of the Brotherhood is no more.\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                         currentlyRunning = "no"
                                                         updateCharacter("heroRunning", "no", usertoken)
                                                         break
                                                     else:
-                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes but hangs his head dejectedly as he accepts your offering.\n"+ u'\u200b' + "\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n"+ u'\u200b' + "\nVanCleef jumps off the top of the boat, disappearing down below.\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                         currentlyRunning = "no"
                                                         updateCharacter("heroRunning", "no", usertoken)
                                                         break
                                                 except Exception as e:
-                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n"+ u'\u200b' + "\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n"+ u'\u200b' + "\nVanCleef jumps off the top of the boat, disappearing down below.\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                     currentlyRunning = "no"
                                                     updateCharacter("heroRunning", "no", usertoken)
                                                     break
@@ -1163,7 +1174,7 @@ async def on_message(message):
                                         await client.send_message(message.channel, usertoken + "```After contemplating for awhile, you choose to flee and live another day.```")
                                         break
                                 elif currentLockout == "HHHHHHA": #VanCleef HM
-                                    loopmsg = await client.send_message(message.channel, usertoken + '```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n\n\"You\'ve defeated my crew without a weapon? It\'s high time I face a worthy opponent.\"\n\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```')
+                                    loopmsg = await client.send_message(message.channel, usertoken + "```You\'re finally at the very top of the ship, you see a shadowy figure step out of the captain\'s quarters.\n"+ u'\u200b' + "\n\"None may challenge the Brotherhood, least of all you. You won\'t stop this operation or the Brotherhood. None shall defeat the Brotherhood!\" he sneers.\n"+ u'\u200b' + "\n\"You\'ve defeated my crew without a weapon? It\'s high time I face a worthy opponent.\"\n"+ u'\u200b' + "\nYou now stand face-to-face with Edwin VanCleef, leader of the Defias Brotherhood. Will you engage him? Or flee and live another day?```")
                                     await client.add_reaction(loopmsg, '🏃')
                                     await client.add_reaction(loopmsg, '⚔')
                                     loopres = await client.wait_for_reaction(['🏃', '⚔'], user=message.author, message=loopmsg, timeout = 60)
@@ -1171,35 +1182,35 @@ async def on_message(message):
                                         userReaction = '{0.reaction.emoji}'.format(loopres)
                                         if userReaction == "⚔":
                                             if didSucceded(520, 550, usertoken) == False:
-                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n\nHe turns around and smirks as he says, \"A clean fight, but you're still no match for the Brotherhood!\"\n\nWith that, your run ends. How pathetic. Rest up before trying again!```")
+                                                await client.send_message(message.channel, usertoken + "```VanCleef mercilessly cuts you down with his sabers.\n"+ u'\u200b' + "\nHe turns around and smirks as he says, \"A clean fight, but you're still no match for the Brotherhood!\"\n"+ u'\u200b' + "\nWith that, your run ends. How pathetic. Rest up before trying again!```")
                                                 currentlyRunning = "no"
                                                 updateCharacter("heroRunning", "no", usertoken)
                                                 break
                                             else:
                                                 currentLockout = updateDMLockout(usertoken, userData["DMLockout"], 6)
                                                 rewards = rollrewards(usertoken, 12, 16, 3, 15, warriorloot="84",mageloot="85",rogueloot="86", rogueOH = "92")
-                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n\n\"A worthy battle. Strike me down, if you will, but know that your actions change nothing!\"\n\n" + str(rewards) + "\n\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
+                                                VCmsg = await client.send_message(message.channel,usertoken + "```ini\nAfter an intense duel, VanCleef kneels down, dropping to the floor.\n"+ u'\u200b' + "\n\"A worthy battle. Strike me down, if you will, but know that your actions change nothing!\"\n"+ u'\u200b' + "\n" + str(rewards) + "\n"+ u'\u200b' + "\nVanCleef now lays in front of you, bloodied and bruised. He's too tired to fight and has given up.\n"+ u'\u200b' + "\nThe choice is yours to make.\nDo you kill VanCleef or spare him?```")
                                                 await client.add_reaction(VCmsg, '🤝')
                                                 await client.add_reaction(VCmsg, '⚔')
                                                 VCres = await client.wait_for_reaction(['🤝', '⚔'], user=message.author, message=VCmsg, timeout = 10)
                                                 try: 
                                                     VCReaction = '{0.reaction.emoji}'.format(VCres)
                                                     if VCReaction == "⚔":
-                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat. \n\nThe leader of the Brotherhood is no more.\n\nAfter looking around, you find a key. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                        await client.send_message(message.channel,usertoken + "```You strike VanCleef down with all your might. The head of Edwin VanCleef rolls around on the floor and off the boat. \n"+ u'\u200b' + "\nThe leader of the Brotherhood is no more.\n"+ u'\u200b' + "\nAfter looking around, you find a key. Inscribed upon it are the words \"The Key to Karazhan.\"\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                         addItemToInventory(usertoken, "o->KARA")
                                                         currentlyRunning = "no"
                                                         updateCharacter("heroRunning", "no", usertoken)
                                                         await client.send_message(message.channel, worldFirst(usertoken))
                                                         break
                                                     else:
-                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes, but hangs his head dejectedly as he accepts your offering.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef runs off and jumps off the top of the boat, disappearing down below.\n\nWhat's this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                        await client.send_message(message.channel,usertoken + "```You reach your hand out to help VanCleef stand up. He glances at you with confusion and distrust in his eyes, but hangs his head dejectedly as he accepts your offering.\n"+ u'\u200b' + "\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n"+ u'\u200b' + "\nVanCleef runs off and jumps off the top of the boat, disappearing down below.\n"+ u'\u200b' + "\nWhat's this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                         addItemToInventory(usertoken, "o->KARA")
                                                         currentlyRunning = "no"
                                                         updateCharacter("heroRunning", "no", usertoken)
                                                         await client.send_message(message.channel, worldFirst(usertoken))
                                                         break
                                                 except Exception as e:
-                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n\nVanCleef jumps off the top of the boat, disappearing down below.\n\nWhat\'s this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
+                                                    await client.send_message(message.channel,usertoken + "```As you stand there contemplating your decision, VanCleef slowly rises. He gazes at you with disdain and cackles.\n"+ u'\u200b' + "\n\"It is not your place to decide whether I live or die. I will return, my forces stronger than ever!\"\n"+ u'\u200b' + "\nVanCleef jumps off the top of the boat, disappearing down below.\n"+ u'\u200b' + "\nWhat\'s this? It seems he dropped a key as he left. Inscribed upon it are the words \"The Key to Karazhan.\"\n"+ u'\u200b' + "\nWith that, your adventure comes to an end. The Deadmines have been rid of all evil, Hero, thanks to your stoic bravery.```")
                                                     addItemToInventory(usertoken, "o->KARA")
                                                     currentlyRunning = "no"
                                                     updateCharacter("heroRunning", "no", usertoken)
@@ -1238,12 +1249,18 @@ async def on_message(message):
         except Exception as e:
             print(e)
             await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
+    if usermessage.startswith('MEGA SHOP'):
+        try:
+            subStringAfter("shop")
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, "Which shop would you like to visit? Current Shops:\nMega Shop Deadmines")
     if usermessage.startswith('MEGA SHOP DEADMINES'):
         try:
             findUserData(usertoken)
-            msg = usertoken + "```ini\nThe shifty-eyed merchant whispers in your direction, looking all around to make sure you're alone.\n\n\"Pssst, you! Commere! I'm not supposed ta be tellin\' ya this, but this mornin\' down at the docks, I overheard that dirty scoundrel VanCleef sayin\' that he dared anyone to enter his mines without a weapon.\n\n\'Nobody in these parts is strong enough to defeat me with his own bare hands,\' he says.\n\nSo whaddya say, pal? Think ya can prove him wrong?\n\nRegardless, have a look at my wares and good luck, Hero. Or should I say... good riddance?\" the merchant taunts, laughing manically with betrayal in his eyes."
+            msg = usertoken + "```ini\nThe shifty-eyed merchant whispers in your direction, looking all around to make sure you're alone.\n"+ u'\u200b' + "\n\"Pssst, you! Commere! I'm not supposed ta be tellin\' ya this, but this mornin\' down at the docks, I overheard that dirty scoundrel VanCleef sayin\' that he dared anyone to enter his mines without a weapon.\n"+ u'\u200b' + "\n\'Nobody in these parts is strong enough to defeat me with his own bare hands,\' he says.\n"+ u'\u200b' + "\nSo whaddya say, pal? Think ya can prove him wrong?\n"+ u'\u200b' + "\nRegardless, have a look at my wares and good luck, Hero. Or should I say... good riddance?\" the merchant taunts, laughing manically with betrayal in his eyes."
             items = displayShopData("AzerothHeroesDMShop", usertoken)
-            msg += "\n\n" + items + "To buy an item simply type \"Mega Buy\"```"
+            msg += "\n"+ u'\u200b' + "\n" + items + "To buy an item simply type \"Mega Buy\"```"
             await client.send_message(message.channel, msg)
         except Exception as e:
             print(e)
@@ -1274,7 +1291,16 @@ async def on_message(message):
         except Exception as e:
             print (e)
             await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
-
+    
+    if usermessage.startswith('MEGA REPORT'):
+        try:
+            report = subStringAfter("report")
+            cursor.execute("INSERT INTO Tickets (userID, report) VALUES (%s,%s);", (usertoken, report,))
+            conn.commit()
+            await client.send_message(message.channel, "Report submited!")
+        except Exception as e:
+            print(e)
+            await client.send_message(message.channel, "Please type the report after \'Mega Report\'")
     if usermessage.startswith('MEGA DELETE'):
         try:
             findUserData(usertoken)
