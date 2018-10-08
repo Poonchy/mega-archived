@@ -17,17 +17,17 @@ import asyncio
 from multiprocessing import Process
 
 TOKEN = app_id = os.environ['TOKEN']
-conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
-cursor = conn.cursor()
 client = discord.Client()
 
 def resetDungeons():
+    conn = pymysql.connect("localhost","root","1999stav","AzerothHeroes")
     cursor = conn.cursor()
     cursor.execute("UPDATE AzerothHeroes SET DMLockout = 'AAAAAAA', heroRunning = 'no';")
     conn.commit()
     print("Dungeon reset!")
 def resetthread():
   while True:
+      print("Running")
       schedule.run_pending()
       time.sleep(1)
 schedule.every().tuesday.at("3:59").do(resetDungeons)
@@ -36,6 +36,7 @@ schedule.every().tuesday.at("3:59").do(resetDungeons)
 async def on_message(message):
     async def messagePrompt():
         conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
+        cursor = conn.cursor()
         userData, usertoken, itemData = {}, '{0.author.mention}'.format(message), {}    
         duelData, shopData = {}, {}
         #Functions to retrieve data
@@ -1343,4 +1344,4 @@ async def on_ready():
 
 if __name__ == '__main__':
     Process(target=resetthread).start()
-    Process(target=client.run(TOKEN)).start()
+    client.run(TOKEN)
