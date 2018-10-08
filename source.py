@@ -35,6 +35,7 @@ schedule.every().tuesday.at("3:59").do(resetDungeons)
 @client.event
 async def on_message(message):
     async def messagePrompt():
+        conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
         userData, usertoken, itemData = {}, '{0.author.mention}'.format(message), {}    
         duelData, shopData = {}, {}
         #Functions to retrieve data
@@ -1330,6 +1331,7 @@ async def on_message(message):
             except Exception as e:
                 print(e)
                 await client.send_message(message.channel, "You do not have a character! Type \"Mega Create Hero\" to start!")
+        conn.close()
     await messagePrompt()
 @client.event
 async def on_ready():
