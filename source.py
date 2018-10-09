@@ -20,14 +20,13 @@ TOKEN = app_id = os.environ['TOKEN']
 client = discord.Client()
 
 def resetDungeons():
-    conn = pymysql.connect("localhost","root","1999stav","AzerothHeroes")
+    conn = pymysql.connect(os.environ['herokuServer'],os.environ['herokuUser'],os.environ['herokuPass'],os.environ['herokuDB'])
     cursor = conn.cursor()
     cursor.execute("UPDATE AzerothHeroes SET DMLockout = 'AAAAAAA', heroRunning = 'no';")
     conn.commit()
     print("Dungeon reset!")
 def resetthread():
   while True:
-      print("Running")
       schedule.run_pending()
       time.sleep(1)
 schedule.every().tuesday.at("3:59").do(resetDungeons)
@@ -177,7 +176,7 @@ async def on_message(message):
             return outMsg
         def findDuelData(userID, whom):
             try:
-                cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE %s = '%s';", (whom, userID,))
+                cursor.execute("SELECT * FROM AzerothHeroesDuels WHERE " + whom + " = %s;", (userID,))
                 conn.commit()
                 query = cursor.fetchall()
                 tempdata = []
@@ -410,13 +409,13 @@ async def on_message(message):
 
         #Functions to update duel data
         def updateDuelData(where, value, userID):
-            cursor.execute("UPDATE AzerothHeroesDuels SET %s = '%s' WHERE duelInit = '%s';",(where, value, userID,))
+            cursor.execute("UPDATE AzerothHeroesDuels SET " + where + " = %s WHERE duelInit = %s;",(value, userID,))
             conn.commit()
         def insertIntoDuelData(duelInit, duelRecip):
-            cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES ('%s','%s');", (duelInit, duelRecip,))
+            cursor.execute("INSERT INTO AzerothHeroesDuels (duelInit, duelRecip) VALUES (%s,%s);", (duelInit, duelRecip,))
             conn.commit()
         def deleteFromDuelData(where):
-            cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = '%s';", (where,))
+            cursor.execute("DELETE FROM AzerothHeroesDuels WHERE duelInit = %s;", (where,))
             conn.commit()
 
         #Functions to facilitate duel math
