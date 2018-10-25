@@ -29,8 +29,8 @@ def resetthread():
   while True:
       schedule.run_pending()
       time.sleep(1)
-#schedule.every().tuesday.at("3:59").do(resetDungeons)
-schedule.every(96).hours.do(resetDungeons)
+schedule.every().monday.at("3:59").do(resetDungeons)
+schedule.every().thursday.at("3:59").do(resetDungeons)
 
 @client.event
 async def on_message(message):
